@@ -368,6 +368,10 @@ Bagian ini mencatat seluruh bug yang pernah terjadi agar **TIDAK PERNAH DIULANGI
       - **Bebas Instruksi Penagihan jika Lunas**: Jika transaksi / invoice berstatus `Lunas` (`paid` atau `completed`), teks email otomatis diubah menjadi **Kwitansi / Bukti Pembayaran Resmi**. Kalimat tagihan seperti *"Mohon lakukan transfer ke SeaBank..."* otomatis **dihilangkan 100%**.
       - **Draf Kwitansi Resmi**: Menampilkan ucapan terima kasih atas pembayaran yang diterima, tanggal pembayaran terverifikasi, periode masa aktif layanan yang sudah aktif tanpa jeda, serta nomor invoice sebagai tanda terima digital.
       - **Indikator Transparansi Modal**: Ditambahkan badge status transaksi hijau pada modal email (`✅ Status Transaksi: LUNAS — Pesan otomatis diatur sebagai Bukti Pembayaran / Kwitansi Resmi`) agar Founder mengetahui langsung jenis template yang aktif sebelum mengirim.
+     - **Penyimpanan Kode & CI/CD Otomatis (GitHub + Vercel)**:
+      - **Remote Repository**: `https://github.com/fajar-romadhan/jaree.git` (Private Repository).
+      - **Branch Utama**: `main`.
+      - **Sistem CI/CD**: Terhubung otomatis ke Vercel. Setiap perubahan/perbaikan kode yang di-push ke branch `main` akan otomatis di-build dan di-deploy ke hosting Vercel dalam hitungan detik.
      - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v16`.
 
 ---
