@@ -67,6 +67,9 @@ class CloudSyncEngine {
       }
       if (topbarBadge) {
         topbarBadge.style.display = 'inline-flex';
+        topbarBadge.style.background = '#ecfdf5';
+        topbarBadge.style.color = '#15803d';
+        topbarBadge.style.borderColor = '#a7f3d0';
         topbarBadge.innerHTML = '🟢 Cloud Live';
         topbarBadge.title = 'Tersambung ke Cloud Database. Data otomatis tersinkron.';
       }
