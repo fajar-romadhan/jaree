@@ -373,8 +373,18 @@ Bagian ini mencatat seluruh bug yang pernah terjadi agar **TIDAK PERNAH DIULANGI
       - **Branch Utama**: `main`.
       - **Hosting Production**: Berhasil di-deploy ke Vercel (`fajar-romadhan's projects`).
       - **Sistem CI/CD**: Terhubung otomatis ke Vercel. Setiap perubahan/perbaikan kode yang di-push ke branch `main` akan otomatis di-build dan di-deploy ke hosting Vercel dalam hitungan detik.
-      - **Akses Fleksibel**: Dashboard JAREE sekarang dapat diakses dari browser mana saja (Laptop, HP Android, iPhone, Tablet).
-     - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v16`.
+      - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v16`.
+  6. **Perbaikan Cap Stempel Resmi pada Hasil Unduhan PDF (html2pdf / html2canvas Fix)**:
+     - **Penyebab Masalah (Root Cause)**:
+       - Cap stempel sebelumnya menggunakan inline SVG dengan kurva `<textPath>` melingkar serta CSS `mix-blend-mode: multiply` dan `filter: drop-shadow`.
+       - Mesin konversi dokumen ke PDF (`html2pdf.js` / `html2canvas`) tidak mendukung parser SVG `<textPath>` dan secara otomatis mengabaikan (drop) elemen yang menggunakan CSS `mix-blend-mode`, sehingga di modal web cap terlihat jelas, namun saat diunduh menjadi file PDF fisiknya cap menghilang.
+     - **Solusi Teknis Berstandar Tinggi**:
+       - Mengimplementasikan generator stempel in-memory **High-Resolution Canvas PNG Rasterization (`generateStampDataUrl`)** di `js/invoice.js`.
+       - Menggambar lingkaran luar ganda, lingkaran dalam putus-putus, dua garis pemisah horizontal, teks melingkar atas (*★ JAREE IT ECOSYSTEM ★*), teks melingkar bawah (*★ FAJAR ROMADHAN · SAH ★*), dan tulisan pusat (*L U N A S* / *TERVERIFIKASI RESMI*) menggunakan koordinat trigonometri Canvas murni.
+       - Diekspor langsung ke format gambar standar Base64 PNG (`<img class="stamp-img" src="data:image/png;base64,...">`).
+       - Memperbarui `css/invoice.css`: menghapus `mix-blend-mode` dan filter penyebab drop, serta menambahkan `@media print` penjamin visibilitas 100%.
+     - **Hasil**: Cap stempel LUNAS berwarna merah bata (`#b91c1c`) berotasi autentik `-12deg` kini tampil 100% sempurna, tajam, dan tidak hilang baik di modal layar, cetak fisik, maupun file PDF hasil unduhan tombol `[Unduh PDF]`.
+     - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v18`.
 
 ---
 

@@ -4,6 +4,10 @@
  */
 
 class InvoiceEngine {
+  constructor() {
+    this._stampCache = {};
+  }
+
   // Format nomor invoice: INV-YYYY-MMDD-NN
   generateInvoiceNumber(dateObj = new Date()) {
     const year = dateObj.getFullYear();
@@ -55,7 +59,145 @@ class InvoiceEngine {
     }
   }
 
-  // Render Cap Stempel Perusahaan Resmi & Profesional (Double Ring Curved SVG)
+  // Generate Cap Stempel Resmi sebagai High-Resolution Base64 PNG via HTML5 Canvas
+  // Solusi 100% kompatibel dengan html2pdf.js, html2canvas, dan window.print()
+  generateStampDataUrl(isPaid) {
+    const cacheKey = isPaid ? 'paid' : 'unpaid';
+    if (this._stampCache && this._stampCache[cacheKey]) {
+      return this._stampCache[cacheKey];
+    }
+    if (!this._stampCache) this._stampCache = {};
+
+    try {
+      if (typeof document === 'undefined') return null;
+      const canvas = document.createElement('canvas');
+      const size = 320;
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+
+      const cx = size / 2; // 160
+      const cy = size / 2; // 160
+      const stampColor = isPaid ? '#b91c1c' : '#4F7BAE';
+
+      ctx.clearRect(0, 0, size, size);
+
+      // 1. Lingkaran luar solid
+      ctx.strokeStyle = stampColor;
+      ctx.lineWidth = 4.8;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 146, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 2. Lingkaran kedua (tepi dalam ring)
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 136, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 3. Lingkaran ketiga (garis putus-putus inner)
+      ctx.lineWidth = 1.6;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.arc(cx, cy, 94, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 4. Dua garis pemisah horizontal tengah
+      ctx.lineWidth = 2.6;
+      ctx.beginPath();
+      ctx.moveTo(64, 120);
+      ctx.lineTo(256, 120);
+      ctx.moveTo(64, 200);
+      ctx.lineTo(256, 200);
+      ctx.stroke();
+
+      // 5. Teks Melingkar Atas: ★ JAREE IT ECOSYSTEM ★
+      const topText = '★ JAREE IT ECOSYSTEM ★';
+      const topChars = topText.split('');
+      const topRadius = 114;
+      const topStartAngle = -Math.PI * 0.78;
+      const topEndAngle = -Math.PI * 0.22;
+      const topStep = (topEndAngle - topStartAngle) / (topChars.length - 1);
+
+      ctx.fillStyle = stampColor;
+      ctx.font = "bold 15px 'Plus Jakarta Sans', Inter, Arial, sans-serif";
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      for (let i = 0; i < topChars.length; i++) {
+        const char = topChars[i];
+        const angle = topStartAngle + i * topStep;
+        const x = cx + topRadius * Math.cos(angle);
+        const y = cy + topRadius * Math.sin(angle);
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle + Math.PI / 2);
+        ctx.fillText(char, 0, 0);
+        ctx.restore();
+      }
+
+      // 6. Teks Melingkar Bawah: ★ FAJAR ROMADHAN · SAH ★
+      const botText = '★ FAJAR ROMADHAN · SAH ★';
+      const botChars = botText.split('');
+      const botRadius = 114;
+      const botStartAngle = Math.PI * 0.78;
+      const botEndAngle = Math.PI * 0.22;
+      const botStep = (botEndAngle - botStartAngle) / (botChars.length - 1);
+
+      ctx.font = "bold 13.5px 'Plus Jakarta Sans', Inter, Arial, sans-serif";
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      for (let i = 0; i < botChars.length; i++) {
+        const char = botChars[i];
+        const angle = botStartAngle + i * botStep;
+        const x = cx + botRadius * Math.cos(angle);
+        const y = cy + botRadius * Math.sin(angle);
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle - Math.PI / 2);
+        ctx.fillText(char, 0, 0);
+        ctx.restore();
+      }
+
+      // 7. Teks Inti Stempel Tengah
+      ctx.font = `900 ${isPaid ? '28px' : '24px'} 'Plus Jakarta Sans', Inter, Arial, sans-serif`;
+      ctx.fillText(isPaid ? 'L U N A S' : 'TAGIHAN', cx, 148);
+
+      ctx.font = "bold 11.5px 'Plus Jakarta Sans', Inter, Arial, sans-serif";
+      ctx.fillText(isPaid ? 'TERVERIFIKASI RESMI' : 'ORIGINAL INVOICE', cx, 176);
+
+      const dataUrl = canvas.toDataURL('image/png');
+      this._stampCache[cacheKey] = dataUrl;
+      return dataUrl;
+    } catch (e) {
+      console.warn('Gagal generate canvas stamp:', e);
+      return null;
+    }
+  }
+
+  // Render Cap Stempel Perusahaan Resmi & Profesional (High-Res Canvas PNG Rasterization)
+  renderOfficialStamp(invoice) {
+    const isPaid = invoice.status === 'paid';
+    const stampDataUrl = this.generateStampDataUrl(isPaid);
+
+    if (stampDataUrl) {
+      return `
+        <div class="official-stamp-badge ${isPaid ? 'stamp-paid' : 'stamp-unpaid'}">
+          <img class="stamp-img" src="${stampDataUrl}" alt="${isPaid ? 'Cap Lunas JAREE' : 'Cap Tagihan JAREE'}" />
+        </div>
+      `;
+    }
+
+    // Fallback jika canvas tidak didukung
+    return this.renderOfficialStampSVG(invoice);
+  }
+
+  // Render Cap Stempel Perusahaan Resmi & Profesional (Double Ring Curved SVG Fallback)
   renderOfficialStampSVG(invoice) {
     const isPaid = invoice.status === 'paid';
     const stampColor = isPaid ? '#b91c1c' : '#4F7BAE';
@@ -331,7 +473,7 @@ class InvoiceEngine {
 
         <div class="inv-signature-block">
           <div class="signature-stamp-wrapper">
-            ${this.renderOfficialStampSVG(invoice)}
+            ${this.renderOfficialStamp(invoice)}
             <div class="signature-seal-stamp">DIGITAL INVOICE</div>
             <div class="signature-line"></div>
             <div class="signature-signer">JAREE</div>
@@ -403,25 +545,33 @@ class InvoiceEngine {
     if (!invoice) return;
     const fileName = this.getInvoicePdfFileName(invoice);
 
-    // Pastikan konten invoice ada di DOM
+    // Pastikan konten invoice ada di DOM & cocok dengan invoice yang diminta
+    let tempContainer = null;
     let element = document.getElementById('invoice-printable-area');
-    if (!element) {
-      const modalContent = document.getElementById('invoice-modal-content');
-      if (modalContent) {
-        modalContent.innerHTML = this.renderInvoiceHTML(invoice);
-        element = document.getElementById('invoice-printable-area');
-      } else {
-        const clientBox = document.getElementById('client-invoice-sheet-box');
-        if (clientBox) {
-          element = clientBox.querySelector('.jaree-invoice-sheet') || clientBox;
-        }
-      }
+
+    const previewModal = document.getElementById('invoice-preview-modal');
+    const isModalOpen = previewModal && (previewModal.classList.contains('show') || previewModal.classList.contains('active') || previewModal.style.display === 'flex');
+    const isCurrentInvoice = window.app?.currentViewingInvoice?.id === invoice.id;
+
+    if (!element || !isModalOpen || !isCurrentInvoice) {
+      tempContainer = document.createElement('div');
+      tempContainer.id = 'temp-pdf-render-box';
+      tempContainer.style.position = 'fixed';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '0';
+      tempContainer.style.width = '800px';
+      tempContainer.style.background = '#ffffff';
+      tempContainer.style.zIndex = '-999';
+      tempContainer.innerHTML = this.renderInvoiceHTML(invoice);
+      document.body.appendChild(tempContainer);
+      element = tempContainer.querySelector('.jaree-invoice-sheet') || tempContainer;
     }
 
-    if (!element) {
-      this.printInvoice(invoice);
-      return;
-    }
+    const cleanup = () => {
+      if (tempContainer && tempContainer.parentNode) {
+        tempContainer.parentNode.removeChild(tempContainer);
+      }
+    };
 
     if (window.html2pdf) {
       if (window.app && typeof window.app.showToast === 'function') {
@@ -432,19 +582,28 @@ class InvoiceEngine {
         margin: [8, 10, 8, 10], // mm
         filename: `${fileName}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: false },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true, 
+          letterRendering: true, 
+          logging: false,
+          allowTaint: true
+        },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
       window.html2pdf().set(opt).from(element).save().then(() => {
+        cleanup();
         if (window.app && typeof window.app.showToast === 'function') {
           window.app.showToast(`Berhasil mengunduh: ${fileName}.pdf`, 'success');
         }
       }).catch(err => {
+        cleanup();
         console.warn('html2pdf fallback ke native print:', err);
         this.printInvoice(invoice);
       });
     } else {
+      cleanup();
       this.printInvoice(invoice);
     }
   }
