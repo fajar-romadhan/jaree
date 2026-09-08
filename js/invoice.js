@@ -395,7 +395,11 @@ class InvoiceEngine {
   }
 
   // Unduh PDF langsung (1-klik download) tanpa perlu melalui dialog cetak browser
-  downloadInvoicePDF(invoice) {
+  downloadInvoicePDF(invoiceOrId) {
+    let invoice = invoiceOrId;
+    if (typeof invoiceOrId === 'string' && window.db) {
+      invoice = window.db.getInvoiceById(invoiceOrId) || (window.app?.currentViewingInvoice);
+    }
     if (!invoice) return;
     const fileName = this.getInvoicePdfFileName(invoice);
 
@@ -406,6 +410,11 @@ class InvoiceEngine {
       if (modalContent) {
         modalContent.innerHTML = this.renderInvoiceHTML(invoice);
         element = document.getElementById('invoice-printable-area');
+      } else {
+        const clientBox = document.getElementById('client-invoice-sheet-box');
+        if (clientBox) {
+          element = clientBox.querySelector('.jaree-invoice-sheet') || clientBox;
+        }
       }
     }
 

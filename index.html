@@ -883,7 +883,10 @@
             <i data-feather="message-circle"></i> Chat WA (0857-8365-6335)
           </a>
         </div>
-        <div style="display:flex;gap:8px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-secondary" id="btn-modal-download-pdf" onclick="app.downloadPdfForActiveEmail()" title="Unduh File Dokumen PDF Invoice Sekarang">
+            <i data-feather="download"></i> Unduh PDF
+          </button>
           <button type="button" class="btn btn-secondary" id="btn-email-open-gmail" onclick="app.openInGmailWeb()" title="Buka dan kirim langsung di tab Gmail (100% Gratis)">
             <i data-feather="external-link"></i> Buka di Gmail
           </button>
@@ -918,9 +921,9 @@
   <!-- SCRIPTS -->
   <script src="js/email.min.js"></script>
   <script src="js/html2pdf.bundle.min.js"></script>
-  <script src="js/db.js?v=20260909_v16"></script>
-  <script src="js/automation.js?v=20260909_v16"></script>
-  <script src="js/invoice.js?v=20260909_v16"></script>
-  <script src="js/app.js?v=20260909_v16"></script>
+  <script src="js/db.js?v=20260909_v17"></script>
+  <script src="js/automation.js?v=20260909_v17"></script>
+  <script src="js/invoice.js?v=20260909_v17"></script>
+  <script src="js/app.js?v=20260909_v17"></script>
 </body>
 </html>

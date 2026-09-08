@@ -303,6 +303,22 @@ Fajar Romadhan (Founder)`;
       ? this.formatDateId(invoice.paidAt.slice(0, 10)) 
       : (invoice?.issueDate ? this.formatDateId(invoice.issueDate) : this.formatDateId(this.getTodayISO()));
 
+    // Buat tautan faktur digital resmi (Online PDF Viewer)
+    let digitalInvoiceLink = '';
+    try {
+      const origin = window.location.origin;
+      if (origin && origin !== 'null' && !origin.startsWith('file:') && invoice) {
+        const encoded = this.encodeInvoiceForUrl(invoice, client, settings);
+        if (encoded) digitalInvoiceLink = `${origin}/?d=${encoded}`;
+      }
+    } catch (e) {
+      console.warn('Could not generate digital invoice link', e);
+    }
+
+    const invoiceLinkBlock = digitalInvoiceLink 
+      ? `\n🔗 Buka & Unduh Dokumen Invoice PDF Resmi:\n${digitalInvoiceLink}\n` 
+      : '';
+
     if (type === 'paid_confirmation' || (type === 'invoice' && isPaid)) {
       // 1. DRAF BUKTI PEMBAYARAN / KWITANSI RESMI (STATUS LUNAS)
       subject = `[JAREE] Bukti Pembayaran Lunas (Kwitansi) — Invoice ${invNumber}`;
@@ -318,7 +334,7 @@ Kami mengonfirmasi bahwa tagihan invoice ${invNumber} sebesar ${priceStr} telah 
 • Periode Masa Aktif: ${periodStr}
 • Status Pembayaran: LUNAS (Terverifikasi Resmi)
 • Tanggal Pembayaran: ${paidDateStr}
-
+${invoiceLinkBlock}
 Akun ${serviceName} Anda telah aktif sepenuhnya untuk periode di atas tanpa jeda atau kendala. Dokumen ini berlaku sebagai bukti pembayaran dan kwitansi resmi dari JAREE.
 
 ${contactFooterText}`;
@@ -336,7 +352,7 @@ Rincian Status Layanan:
 • Layanan: ${serviceName}
 • Periode Masa Aktif: ${periodStr}
 • Status Pembayaran: LUNAS (Tidak ada tagihan tertunggak)
-
+${invoiceLinkBlock}
 Terima kasih atas kerja sama dan kepercayaan Anda bersama JAREE. Akun Anda tetap aktif lancar.
 
 ${contactFooterText}`;
@@ -353,7 +369,7 @@ Rincian Tagihan:
 🗓️ Periode Perpanjangan: ${periodStr}
 💰 Total Tagihan: ${priceStr}
 ⏰ Batas Waktu: ${dueDateStr}
-
+${invoiceLinkBlock}
 Instruksi Pembayaran:
 Bank: ${settings.payment.bankName}
 No. Rekening: ${settings.payment.accountNumber}
@@ -378,7 +394,7 @@ Berikut kami sampaikan rincian tagihan invoice untuk periode layanan Anda:
 🗓️ Periode Layanan: ${periodStr}
 ⏰ Jatuh Tempo: ${dueDateStr}
 💰 Total Tagihan: ${priceStr}
-
+${invoiceLinkBlock}
 Pembayaran dapat ditransfer melalui rekening resmi JAREE:
 🏦 Bank: ${settings.payment.bankName}
 💳 No. Rekening: ${settings.payment.accountNumber}
@@ -494,7 +510,78 @@ ${contactFooterText}`;
       };
     }
   }
+
+  // Serialisasi data invoice menjadi string aman URL untuk Client Viewer
+  encodeInvoiceForUrl(invoice, client, settings) {
+    try {
+      const payload = {
+        id: invoice.invoiceNumber || invoice.id,
+        c: client?.name || invoice.clientSnapshot?.name || 'Pelanggan',
+        e: client?.email || invoice.clientSnapshot?.email || '',
+        p: client?.phone || invoice.clientSnapshot?.phone || '',
+        desc: invoice.items?.[0]?.description || 'Penyimpanan Drive 5 TB',
+        tot: invoice.total || 150000,
+        from: invoice.servicePeriod?.from || '',
+        to: invoice.servicePeriod?.to || '',
+        due: invoice.dueDate || '',
+        st: invoice.status || 'paid',
+        pa: invoice.paidAt || '',
+        b: settings.payment?.bankName || 'SeaBank',
+        r: settings.payment?.accountNumber || '901448683446',
+        a: settings.payment?.accountName || 'Fajar Romadhan'
+      };
+      return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    } catch (err) {
+      return '';
+    }
+  }
+
+  // Dekode data invoice dari parameter URL
+  decodeInvoiceFromUrl(encodedStr) {
+    try {
+      const json = decodeURIComponent(escape(atob(encodedStr)));
+      const p = JSON.parse(json);
+      return {
+        id: p.id,
+        invoiceNumber: p.id,
+        clientId: 'CLT-ONLINE',
+        clientSnapshot: { name: p.c, email: p.e, phone: p.p },
+        servicePeriod: { from: p.from, to: p.to },
+        dueDate: p.due,
+        issueDate: p.due || p.from,
+        items: [{
+          description: p.desc,
+          qty: 1,
+          unit: 'periode',
+          unitPrice: p.tot,
+          total: p.tot
+        }],
+        subtotal: p.tot,
+        tax: 0,
+        total: p.tot,
+        status: p.st,
+        paidAt: p.pa,
+        paymentDetails: {
+          bankName: p.b,
+          accountNumber: p.r,
+          accountName: p.a
+        },
+        notes: p.st === 'paid' ? [
+          'Pembayaran telah diterima — terima kasih.',
+          'Akun Penyimpanan Drive 5 TB aktif untuk periode layanan di atas.',
+          'Perpanjangan ditagihkan pada awal periode berikutnya.'
+        ] : [
+          'Menunggu konfirmasi pembayaran transfer bank.',
+          'Silakan transfer sebelum tanggal jatuh tempo.',
+          'Kirim bukti transfer ke WhatsApp atau email resmi JAREE.'
+        ]
+      };
+    } catch (e) {
+      return null;
+    }
+  }
 }
 
 window.automation = new AutomationEngine();
+
 

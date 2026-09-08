@@ -11,6 +11,25 @@ class JareeApp {
   }
 
   init() {
+    // Cek apakah halaman dibuka via Tautan Dokumen Invoice Digital Publik (?d=... atau ?inv=...)
+    const urlParams = new URLSearchParams(window.location.search);
+    const encodedInv = urlParams.get('d');
+    const directInvId = urlParams.get('inv');
+
+    if (encodedInv) {
+      const decoded = window.automation.decodeInvoiceFromUrl(encodedInv);
+      if (decoded) {
+        this.renderClientOnlyInvoiceView(decoded);
+        return;
+      }
+    } else if (directInvId) {
+      const found = window.db.getInvoiceById(directInvId);
+      if (found) {
+        this.renderClientOnlyInvoiceView(found);
+        return;
+      }
+    }
+
     this.checkSecurityLock();
     this.setupEventListeners();
     this.renderAllViews();
@@ -1672,6 +1691,74 @@ class JareeApp {
     const modal = document.getElementById('send-email-modal');
     if (modal) modal.classList.remove('show');
     this.activeEmailContext = null;
+  }
+
+  downloadPdfForActiveEmail() {
+    if (!this.activeEmailContext || !this.activeEmailContext.invoice) {
+      this.showToast('Data invoice tidak ditemukan untuk diunduh.', 'warning');
+      return;
+    }
+    const inv = this.activeEmailContext.invoice;
+    window.invoiceEngine.downloadInvoicePDF(inv);
+  }
+
+  // Tampilan Khusus Klien (Buka via Link Digital Invoice Publik)
+  renderClientOnlyInvoiceView(invoice) {
+    document.title = window.invoiceEngine.getInvoicePdfFileName(invoice);
+    this.currentViewingInvoice = invoice;
+
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) sidebar.style.display = 'none';
+    const topbar = document.querySelector('.topbar');
+    if (topbar) topbar.style.display = 'none';
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+      mainContent.style.marginLeft = '0';
+      mainContent.style.padding = '20px 12px';
+      mainContent.style.width = '100%';
+      mainContent.style.maxWidth = '900px';
+      mainContent.style.margin = '0 auto';
+    }
+    const lockScreen = document.getElementById('lock-screen');
+    if (lockScreen) lockScreen.style.display = 'none';
+
+    document.querySelectorAll('.view-panel').forEach(p => p.style.display = 'none');
+
+    let clientView = document.getElementById('client-invoice-view');
+    if (!clientView) {
+      clientView = document.createElement('div');
+      clientView.id = 'client-invoice-view';
+      if (mainContent) mainContent.appendChild(clientView);
+      else document.body.appendChild(clientView);
+    }
+
+    const invNum = invoice.invoiceNumber || invoice.id;
+    clientView.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;background:#ffffff;padding:12px 18px;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #e2e8f0;flex-wrap:wrap;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="background:#4F7BAE;color:#fff;font-weight:800;font-size:14px;padding:6px 12px;border-radius:6px;letter-spacing:1px;">JAREE</div>
+          <div>
+            <div style="font-weight:700;color:#0f172a;font-size:13.5px;">Dokumen Invoice Resmi — ${invNum}</div>
+            <div style="font-size:11.5px;color:#64748b;">Penerbit: JAREE IT Solutions · Fajar Romadhan</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary btn-sm" onclick="window.invoiceEngine.downloadInvoicePDF(window.app.currentViewingInvoice)">
+            <i data-feather="download"></i> Unduh File PDF
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="window.print()">
+            <i data-feather="printer"></i> Cetak Dokumen
+          </button>
+        </div>
+      </div>
+      <div id="client-invoice-sheet-box" style="background:#ffffff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);padding:10px;overflow-x:auto;"></div>
+    `;
+
+    const sheetHtml = window.invoiceEngine.renderInvoiceHTML(invoice);
+    const box = document.getElementById('client-invoice-sheet-box');
+    if (box) box.innerHTML = sheetHtml;
+
+    if (window.feather) feather.replace();
   }
 
   // Automasi Latar Belakang: Cek dan Kirim Peringatan H-1 Otomatis
