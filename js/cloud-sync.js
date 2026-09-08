@@ -82,17 +82,25 @@ class CloudSyncEngine {
         topbarBadge.innerHTML = '🔄 Syncing...';
       }
     } else if (this.status === 'error') {
+      const isDbNotCreated = (errMsg && (errMsg.includes('disabled') || errMsg.includes('PERMISSION_DENIED') || errMsg.includes('not been used') || errMsg.includes('does not exist')));
       if (badge) {
         badge.className = 'status-badge';
         badge.style.background = '#fee2e2';
         badge.style.color = '#b91c1c';
-        badge.innerHTML = '⚠️ Gagal Terhubung';
+        badge.innerHTML = isDbNotCreated ? '⚠️ Firestore Belum Diaktifkan di Firebase' : '⚠️ Gagal Terhubung ke Cloud';
       }
       if (desc) {
-        desc.textContent = errMsg || 'Periksa kembali konfigurasi Firebase di Pengaturan.';
+        desc.innerHTML = isDbNotCreated 
+          ? '<b>Langkah Terakhir:</b> Database Firestore belum dibuat di Firebase Console. Buka <a href="https://console.firebase.google.com/project/jaree-946de/firestore" target="_blank" style="color:#0369a1;font-weight:700;text-decoration:underline;">Firebase Console &rarr; Firestore Database &rarr; Create Database</a> (Pilih <i>Start in test mode</i>) agar sinkronisasi aktif!'
+          : (errMsg || 'Periksa kembali konfigurasi Firebase di Pengaturan.');
       }
       if (topbarBadge) {
-        topbarBadge.style.display = 'none';
+        topbarBadge.style.display = 'inline-flex';
+        topbarBadge.style.background = '#fee2e2';
+        topbarBadge.style.color = '#b91c1c';
+        topbarBadge.style.borderColor = '#fca5a5';
+        topbarBadge.innerHTML = '⚠️ Cloud: Perlu Aktifkan Firestore';
+        topbarBadge.title = 'Buka Firebase Console -> Firestore Database -> Create database';
       }
     } else {
       if (badge) {

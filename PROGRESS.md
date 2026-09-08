@@ -421,7 +421,8 @@ Bagian ini mencatat seluruh bug yang pernah terjadi agar **TIDAK PERNAH DIULANGI
           - Panduan ringkas 3 langkah membuat project gratis di `console.firebase.google.com`.
         - Menambahkan indikator status hijau `🟢 Cloud Live` di Topbar dashboard saat terhubung.
         - **Auto-Config Proyek Resmi Founder**: Mengintegrasikan kredensial project `jaree-946de` (`apiKey: AIzaSyBQOb4otLRsETQgTCCppcQGauYtuVTBACc`) langsung ke `DEFAULT_SETTINGS` dan auto-migrasi LocalStorage, sehingga seluruh akun Chrome dan perangkat otomatis terhubung ke cloud secara instan tanpa perlu input manual.
-      - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v23`.
+        - **Audit Aktivasi Database (Post-Mortem)**: Pengujian REST API langsung ke Google Cloud mengonfirmasi status `PERMISSION_DENIED / SERVICE_DISABLED` karena database Firestore belum dibuat (*Create Database*) pada project `jaree-946de`. Menambahkan auto-deteksi error di UI dan panduan langsung menuju `https://console.firebase.google.com/project/jaree-946de/firestore`.
+      - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v24`.
 
 ---
 
