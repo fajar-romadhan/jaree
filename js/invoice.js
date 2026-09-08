@@ -358,7 +358,6 @@ class InvoiceEngine {
           <div class="inv-section-tag">TAGIHAN KEPADA</div>
           <div class="inv-client-name">${invoice.clientSnapshot.name || 'Pelanggan'}</div>
           <div class="inv-client-info">${invoice.clientSnapshot.email || '-'}</div>
-          <div class="inv-client-info">${invoice.clientSnapshot.phone || '-'}</div>
         </div>
 
         <div class="inv-details-box">

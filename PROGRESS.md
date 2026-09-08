@@ -385,6 +385,13 @@ Bagian ini mencatat seluruh bug yang pernah terjadi agar **TIDAK PERNAH DIULANGI
        - Memperbarui `css/invoice.css`: menghapus `mix-blend-mode` dan filter penyebab drop, serta menambahkan `@media print` penjamin visibilitas 100%.
      - **Hasil**: Cap stempel LUNAS berwarna merah bata (`#b91c1c`) berotasi autentik `-12deg` kini tampil 100% sempurna, tajam, dan tidak hilang baik di modal layar, cetak fisik, maupun file PDF hasil unduhan tombol `[Unduh PDF]`.
      - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v18`.
+  7. **Penyempurnaan Tampilan Invoice: Menghapus Nomor Telepon Klien pada Bagian 'TAGIHAN KEPADA'**:
+     - **Permintaan Pengguna**: Menghilangkan baris teks nomor telepon klien (`invoice.clientSnapshot.phone`) pada kolom `TAGIHAN KEPADA` di lembar invoice.
+     - **Tindakan**:
+       - Mengedit `js/invoice.js` pada fungsi `renderInvoiceHTML(invoice)` untuk menghapus `<div class="inv-client-info">${invoice.clientSnapshot.phone || '-'}</div>`.
+       - Kolom `TAGIHAN KEPADA` kini hanya menampilkan **Nama Klien** dan **Email Klien** secara bersih, profesional, dan rapi sesuai standar format referensi `INV-2026-0803-01`.
+       - Data nomor WhatsApp klien tetap tersimpan aman di database untuk kebutuhan komunikasi dan kirim pesan via WA.
+     - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v19`.
 
 ---
 
