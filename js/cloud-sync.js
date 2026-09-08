@@ -82,25 +82,51 @@ class CloudSyncEngine {
         topbarBadge.innerHTML = '🔄 Syncing...';
       }
     } else if (this.status === 'error') {
-      const isDbNotCreated = (errMsg && (errMsg.includes('disabled') || errMsg.includes('PERMISSION_DENIED') || errMsg.includes('not been used') || errMsg.includes('does not exist')));
+      const lowerMsg = (errMsg || '').toLowerCase();
+      const isPermissionDenied = lowerMsg.includes('permission') || lowerMsg.includes('permission-denied') || lowerMsg.includes('insufficient permissions');
+      const isDbNotCreated = lowerMsg.includes('disabled') || lowerMsg.includes('not been used') || lowerMsg.includes('does not exist');
+
       if (badge) {
         badge.className = 'status-badge';
         badge.style.background = '#fee2e2';
         badge.style.color = '#b91c1c';
-        badge.innerHTML = isDbNotCreated ? '⚠️ Firestore Belum Diaktifkan di Firebase' : '⚠️ Gagal Terhubung ke Cloud';
+        if (isPermissionDenied) {
+          badge.innerHTML = '⚠️ Aturan Firestore Masih Terkunci (Rules)';
+        } else if (isDbNotCreated) {
+          badge.innerHTML = '⚠️ Firestore Belum Diaktifkan di Firebase';
+        } else {
+          badge.innerHTML = '⚠️ Gagal Terhubung ke Cloud';
+        }
       }
       if (desc) {
-        desc.innerHTML = isDbNotCreated 
-          ? '<b>Langkah Terakhir:</b> Database Firestore belum dibuat di Firebase Console. Buka <a href="https://console.firebase.google.com/project/jaree-946de/firestore" target="_blank" style="color:#0369a1;font-weight:700;text-decoration:underline;">Firebase Console &rarr; Firestore Database &rarr; Create Database</a> (Pilih <i>Start in test mode</i>) agar sinkronisasi aktif!'
-          : (errMsg || 'Periksa kembali konfigurasi Firebase di Pengaturan.');
+        if (isPermissionDenied) {
+          desc.innerHTML = '<b>Langkah Terakhir (Aturan Rules):</b> Firestore sudah dibuat tapi terkunci (Production Mode). Buka <a href="https://console.firebase.google.com/project/jaree-946de/firestore/rules" target="_blank" style="color:#0369a1;font-weight:700;text-decoration:underline;">Firebase Console &rarr; Firestore Database &rarr; Tab "Rules"</a>, ubah menjadi <code>allow read, write: if true;</code> lalu klik <b>Publish</b> agar sinkronisasi aktif!';
+        } else if (isDbNotCreated) {
+          desc.innerHTML = '<b>Langkah Terakhir:</b> Database Firestore belum dibuat di Firebase Console. Buka <a href="https://console.firebase.google.com/project/jaree-946de/firestore" target="_blank" style="color:#0369a1;font-weight:700;text-decoration:underline;">Firebase Console &rarr; Firestore Database &rarr; Create Database</a> (Pilih <i>Start in test mode</i>) agar sinkronisasi aktif!';
+        } else {
+          desc.innerHTML = errMsg || 'Periksa kembali konfigurasi Firebase di Pengaturan.';
+        }
       }
       if (topbarBadge) {
         topbarBadge.style.display = 'inline-flex';
         topbarBadge.style.background = '#fee2e2';
         topbarBadge.style.color = '#b91c1c';
         topbarBadge.style.borderColor = '#fca5a5';
-        topbarBadge.innerHTML = '⚠️ Cloud: Perlu Aktifkan Firestore';
-        topbarBadge.title = 'Buka Firebase Console -> Firestore Database -> Create database';
+        topbarBadge.style.cursor = 'pointer';
+        topbarBadge.onclick = () => {
+          if (window.app && typeof window.app.navigateTo === 'function') {
+            window.app.navigateTo('settings');
+            const target = document.getElementById('cloud-sync-status-badge');
+            if (target) target.scrollIntoView({ behavior: 'smooth' });
+          }
+        };
+        if (isPermissionDenied) {
+          topbarBadge.innerHTML = '⚠️ Cloud: Buka Aturan Rules Firestore';
+          topbarBadge.title = 'Klik untuk membuka panduan buka Rules di Firebase Console';
+        } else {
+          topbarBadge.innerHTML = '⚠️ Cloud: Perlu Aktifkan Firestore';
+          topbarBadge.title = 'Buka Firebase Console -> Firestore Database -> Create database';
+        }
       }
     } else {
       if (badge) {
@@ -118,6 +144,45 @@ class CloudSyncEngine {
     }
   }
 
+  // Penggabungan dataset dua arah cerdas (ID-based smart merge) agar tidak ada invoice / data yang hilang
+  mergeData(localData, remoteData) {
+    if (!remoteData) return localData;
+    if (!localData) return remoteData;
+
+    const merged = { ...localData };
+
+    const mergeArray = (localArr = [], remoteArr = []) => {
+      const map = new Map();
+      // Masukkan data remote terlebih dahulu
+      remoteArr.forEach(item => { if (item && item.id) map.set(item.id, item); });
+      // Masukkan / perbarui dengan data lokal
+      localArr.forEach(item => {
+        if (!item || !item.id) return;
+        if (map.has(item.id)) {
+          const remoteItem = map.get(item.id);
+          const localTime = new Date(item.updatedAt || item.createdAt || 0).getTime();
+          const remoteTime = new Date(remoteItem.updatedAt || remoteItem.createdAt || 0).getTime();
+          if (localTime >= remoteTime) {
+            map.set(item.id, item);
+          }
+        } else {
+          map.set(item.id, item);
+        }
+      });
+      return Array.from(map.values());
+    };
+
+    merged.clients = mergeArray(localData.clients, remoteData.clients);
+    merged.services = mergeArray(localData.services, remoteData.services);
+    merged.subscriptions = mergeArray(localData.subscriptions, remoteData.subscriptions);
+    merged.invoices = mergeArray(localData.invoices, remoteData.invoices);
+    merged.reminderLogs = mergeArray(localData.reminderLogs, remoteData.reminderLogs);
+
+    merged.settings = { ...(remoteData.settings || {}), ...(localData.settings || {}) };
+
+    return merged;
+  }
+
   listenToRemoteChanges() {
     if (!this.firestore) return;
     if (this.unsubscribe) this.unsubscribe();
@@ -133,21 +198,26 @@ class CloudSyncEngine {
       const localStr = localStorage.getItem('JAREE_DB_V1') || '';
       const remoteStr = JSON.stringify(remoteData);
 
-      // Jika data di cloud berbeda dengan data lokal, perbarui data lokal
+      // Jika data di cloud berbeda dengan data lokal, gabungkan secara cerdas
       if (localStr !== remoteStr) {
         console.log('Perubahan data terdeteksi dari Cloud Firebase!');
-        window.db.data = remoteData;
-        window.db.saveLocalOnly();
+        const merged = this.mergeData(window.db ? window.db.data : null, remoteData);
+        if (window.db) {
+          window.db.data = merged;
+          window.db.saveLocalOnly();
+        }
 
         if (window.app) {
           window.app.renderAll();
           if (typeof window.app.showToast === 'function') {
-            window.app.showToast('Data otomatis tersinkron dari Cloud!', 'info');
+            window.app.showToast('Data riwayat otomatis tersinkron dari Cloud!', 'info');
           }
         }
       }
     }, (err) => {
       console.warn('Firestore onSnapshot warning:', err);
+      this.status = 'error';
+      this.updateUIStatus(err.message || '');
     });
   }
 
@@ -165,15 +235,20 @@ class CloudSyncEngine {
         await this.pushLocalToRemote();
       } else {
         const remoteData = doc.data();
-        const localInvoices = window.db ? window.db.getInvoices() : [];
-        const remoteInvoices = remoteData.invoices || [];
+        const localData = window.db ? window.db.data : null;
 
-        // Ambil data yang paling mutakhir / lengkap
-        if (remoteInvoices.length >= localInvoices.length) {
-          window.db.data = remoteData;
+        // Smart merge
+        const merged = this.mergeData(localData, remoteData);
+        if (window.db) {
+          window.db.data = merged;
           window.db.saveLocalOnly();
-          if (window.app) window.app.renderAll();
-        } else {
+        }
+        if (window.app) window.app.renderAll();
+
+        // Jika data gabungan lebih baru/banyak dari remote, perbarui cloud
+        const remoteInvoicesCount = (remoteData.invoices || []).length;
+        const mergedInvoicesCount = (merged.invoices || []).length;
+        if (mergedInvoicesCount > remoteInvoicesCount) {
           await this.pushLocalToRemote();
         }
       }
@@ -183,7 +258,7 @@ class CloudSyncEngine {
     } catch (e) {
       console.warn('Initial sync error:', e);
       this.status = 'error';
-      this.updateUIStatus(e.message);
+      this.updateUIStatus(e.message || '');
     }
   }
 
@@ -195,8 +270,12 @@ class CloudSyncEngine {
       const payload = JSON.parse(JSON.stringify(window.db.data));
       await docRef.set(payload);
       console.log('Database JAREE berhasil disinkronkan ke Firebase Cloud!');
+      this.status = 'connected';
+      this.updateUIStatus();
     } catch (e) {
       console.error('Failed to push to Firebase:', e);
+      this.status = 'error';
+      this.updateUIStatus(e.message || '');
     } finally {
       setTimeout(() => { this.isSyncing = false; }, 600);
     }
