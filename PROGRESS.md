@@ -421,8 +421,9 @@ Bagian ini mencatat seluruh bug yang pernah terjadi agar **TIDAK PERNAH DIULANGI
           - Panduan ringkas 3 langkah membuat project gratis di `console.firebase.google.com`.
         - Menambahkan indikator status hijau `🟢 Cloud Live` di Topbar dashboard saat terhubung.
         - **Auto-Config Proyek Resmi Founder**: Mengintegrasikan kredensial project `jaree-946de` (`apiKey: AIzaSyBQOb4otLRsETQgTCCppcQGauYtuVTBACc`) langsung ke `DEFAULT_SETTINGS` dan auto-migrasi LocalStorage, sehingga seluruh akun Chrome dan perangkat otomatis terhubung ke cloud secara instan tanpa perlu input manual.
-        - **Audit Aktivasi Database (Post-Mortem)**: Pengujian REST API langsung ke Google Cloud mengonfirmasi status `PERMISSION_DENIED / SERVICE_DISABLED` karena database Firestore belum dibuat (*Create Database*) pada project `jaree-946de`. Menambahkan auto-deteksi error di UI dan panduan langsung menuju `https://console.firebase.google.com/project/jaree-946de/firestore`.
-      - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v24`.
+        - **Audit Aktivasi Database & Security Rules (Post-Mortem)**: Pengujian REST API langsung ke Google Cloud mengonfirmasi aturan Firestore awalnya berstatus `PERMISSION_DENIED` (Production Mode). Pengguna telah mengaktifkan rules publik di Firebase Console dan data berhasil terunggah ke Cloud.
+        - **Audit Bug Post-Sync (`window.app.renderAllViews`)**: Ditemukan bug di mana `syncInitial()` dan `onSnapshot()` memanggil `window.app.renderAll()` padahal fungsi di `app.js` bernama `renderAllViews()`. Hal ini memicu unhandled `TypeError` yang tertangkap `catch` dan keliru menampilkan status error pada badge topbar. Diperbaiki dengan menyelaraskan panggilan fungsi, menambahkan alias di `app.js`, dan mereset palet warna badge ke hijau (`#ecfdf5` / `#15803d`) saat status `connected`.
+      - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v26`.
 
 ---
 
