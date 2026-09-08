@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>JAREE — Dashboard Admin Penagihan & Langganan</title>
+  
+  <!-- Plus Jakarta Sans Font & Feather Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script src="js/email.min.js"></script>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css?v=20260909_v12">
+  <link rel="stylesheet" href="css/invoice.css?v=20260909_v12">
+  
+  <style>
+    body { background-color: #f8fafc !important; color: #0f172a !important; }
+    .sidebar, .topbar, .panel-box, .stat-card, .modal-dialog { background-color: #ffffff !important; border-color: #e2e8f0 !important; }
+    .page-heading, .brand-title, .panel-box-title, .stat-number { color: #0f172a !important; }
+    .btn-status-paid { background-color: #ecfdf5 !important; border: 1px solid #a7f3d0 !important; color: #15803d !important; font-weight: 600 !important; }
+    .btn-status-paid:hover { background-color: #d1fae5 !important; color: #047857 !important; }
+    .btn-status-unpaid { background-color: #fffbeb !important; border: 1px solid #fde68a !important; color: #b45309 !important; font-weight: 600 !important; }
+    .btn-status-unpaid:hover { background-color: #fef3c7 !important; color: #92400e !important; }
+    #edit-inv-modal, #edit-sub-modal, #client-modal, #send-email-modal { z-index: 1200 !important; }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    
+    <!-- SIDEBAR ADMIN -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-square">J</div>
+        <div>
+          <div class="brand-title">JAREE</div>
+          <div class="brand-subtitle">Billing Management</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <button class="menu-btn active" data-view="dashboard" onclick="app.navigate('dashboard')">
+          <i data-feather="grid"></i>
+          <span>Dashboard</span>
+        </button>
+        <button class="menu-btn" data-view="subscriptions" onclick="app.navigate('subscriptions')">
+          <i data-feather="clock"></i>
+          <span>Daftar Pesanan</span>
+        </button>
+        <button class="menu-btn" data-view="invoices" onclick="app.navigate('invoices')">
+          <i data-feather="file-text"></i>
+          <span>Riwayat Invoice</span>
+        </button>
+        <button class="menu-btn" data-view="clients" onclick="app.navigate('clients')">
+          <i data-feather="users"></i>
+          <span>Data Pelanggan</span>
+        </button>
+        <button class="menu-btn" data-view="settings" onclick="app.navigate('settings')">
+          <i data-feather="settings"></i>
+          <span>Pengaturan & Rekening</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="founder-badge">Founder: Fajar Romadhan</div>
+        <div class="founder-sub">SeaBank: 9014-4868-3446</div>
+      </div>
+    </aside>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+      
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1 class="page-heading" id="page-heading">Dashboard Langganan</h1>
+        </div>
+        <div class="topbar-right">
+          <button class="btn btn-secondary btn-sm" onclick="window.db.exportJSON()">
+            <i data-feather="download"></i> Backup Data (.json)
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btn-lock-console" style="display:none;" onclick="app.lockConsole()">
+            <i data-feather="lock"></i> Kunci Sesi
+          </button>
+        </div>
+      </header>
+
+      <!-- VIEWPORT PAGES -->
+      <main class="content-viewport">
+
+        <!-- =========================================================
+             VIEW 1: DASHBOARD UTAMA
+             ========================================================= -->
+        <section id="view-dashboard" class="view-panel active-panel">
+          
+          <!-- ALERT H-1 BANNER (HANYA MUNCUL DI DASHBOARD JIKA ADA TAGIHAN MENDEKATI TEMPO) -->
+          <div id="alert-banner-area"></div>
+
+          <!-- STATS CARDS -->
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-label">Total Pelanggan Aktif</div>
+              <div class="stat-number" id="stat-client-count">1</div>
+              <div class="stat-meta">Dimas Imansyah (Penyimpanan Drive 5 TB)</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-label">Jatuh Tempo Mendekat (H-1)</div>
+              <div class="stat-number stat-warning" id="stat-expiring-count">1</div>
+              <div class="stat-meta">Waktunya penagihan & perpanjang</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-label">Pendapatan Bulan Ini</div>
+              <div class="stat-number stat-success" id="stat-revenue">Rp 150.000</div>
+              <div class="stat-meta">Status Lunas SeaBank</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-label">Total Dokumen Invoice</div>
+              <div class="stat-number" id="stat-inv-count">1</div>
+              <div class="stat-meta">Format INV-2026-0803-01</div>
+            </div>
+          </div>
+
+          <!-- TABEL FOKUS: DAFTAR PESANAN LAYANAN -->
+          <div class="panel-box">
+            <div class="panel-box-header">
+              <div>
+                <h2 class="panel-box-title">Daftar Pesanan Layanan</h2>
+                <p class="panel-box-sub">Kelola masa aktif pesanan dan buat transaksi baru dalam 1 kali klik.</p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="app.openNewOrderModal()">
+                <i data-feather="plus"></i> + Tambah Pesanan
+              </button>
+            </div>
+            <div class="table-container">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>PELANGGAN</th>
+                    <th>LAYANAN</th>
+                    <th>PERIODE LAYANAN</th>
+                    <th>STATUS</th>
+                    <th>BIAYA</th>
+                    <th>NO. INVOICE</th>
+                    <th>AKSI</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboard-subs-tbody">
+                  <!-- Injected via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TABEL INVOICE TERAKHIR DITERBITKAN -->
+          <div class="panel-box">
+            <div class="panel-box-header">
+              <div>
+                <h2 class="panel-box-title">Invoice Terbaru</h2>
+                <p class="panel-box-sub">Arsip invoice format resmi JAREE</p>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="app.navigate('invoices')">Lihat Semua Invoice</button>
+            </div>
+            <div class="table-container">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>NO. INVOICE</th>
+                    <th>KLIEN</th>
+                    <th>TANGGAL TERBIT</th>
+                    <th>PERIODE LAYANAN</th>
+                    <th>TOTAL</th>
+                    <th>STATUS</th>
+                    <th>AKSI</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboard-invoices-tbody">
+                  <!-- Injected via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- =========================================================
+             VIEW 2: SEMUA LANGGANAN
+             ========================================================= -->
+        <section id="view-subscriptions" class="view-panel">
+          <div class="panel-box">
+            <div class="panel-box-header">
+              <div>
+                <h2 class="panel-box-title">Semua Pesanan Layanan Google Drive</h2>
+                <p class="panel-box-sub">Daftar seluruh transaksi pesanan aktif dan riwayat periode</p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="app.openNewOrderModal()">
+                <i data-feather="plus"></i> + Tambah Pesanan
+              </button>
+            </div>
+            <div class="table-container">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>PELANGGAN</th>
+                    <th>LAYANAN</th>
+                    <th>PERIODE LAYANAN</th>
+                    <th>STATUS MASA AKTIF</th>
+                    <th>BIAYA</th>
+                    <th>NO. INVOICE</th>
+                    <th>AKSI</th>
+                  </tr>
+                </thead>
+                <tbody id="all-subs-tbody">
+                  <!-- Injected via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- =========================================================
+             VIEW 3: RIWAYAT SEMUA INVOICE
+             ========================================================= -->
+        <section id="view-invoices" class="view-panel">
+          <div class="panel-box">
+            <div class="panel-box-header">
+              <div>
+                <h2 class="panel-box-title">Riwayat Lengkap Invoice (Format INV-2026-0803-01)</h2>
+                <p class="panel-box-sub">Semua invoice digital yang diterbitkan oleh JAREE</p>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-primary btn-sm" onclick="app.openNewInvoiceModal()">
+                  <i data-feather="plus"></i> Terbitkan Invoice Baru
+                </button>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>NO. INVOICE</th>
+                    <th>PELANGGAN</th>
+                    <th>TANGGAL TERBIT</th>
+                    <th>PERIODE LAYANAN</th>
+                    <th>TOTAL TAGIHAN</th>
+                    <th>STATUS</th>
+                    <th>AKSI</th>
+                  </tr>
+                </thead>
+                <tbody id="all-invoices-tbody">
+                  <!-- Injected via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- =========================================================
+             VIEW 4: DATA PELANGGAN
+             ========================================================= -->
+        <section id="view-clients" class="view-panel">
+          <div class="panel-box">
+            <div class="panel-box-header">
+              <div>
+                <h2 class="panel-box-title">Daftar Pelanggan Terdaftar</h2>
+                <p class="panel-box-sub">Informasi kontak klien untuk pengiriman invoice dan WhatsApp</p>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-primary btn-sm" onclick="app.openClientModal()">
+                  <i data-feather="user-plus"></i> Tambah Pelanggan
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="app.openNewOrderModal()">
+                  <i data-feather="shopping-bag"></i> Buat Pesanan
+                </button>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>NAMA KLIEN</th>
+                    <th>EMAIL</th>
+                    <th>NO. WHATSAPP</th>
+                    <th>TIPE</th>
+                    <th>CATATAN</th>
+                    <th>AKSI</th>
+                  </tr>
+                </thead>
+                <tbody id="all-clients-tbody">
+                  <!-- Injected via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- =========================================================
+             VIEW 5: PENGATURAN REKENING & EMAILJS
+             ========================================================= -->
+        <section id="view-settings" class="view-panel">
+          <div class="settings-grid">
+            <div class="panel-box">
+              <div class="panel-box-header">
+                <h3 class="panel-box-title">Rekening Pembayaran & Identitas Brand</h3>
+              </div>
+              <div class="panel-box-body">
+                <form id="settings-form">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">Nama Brand</label>
+                      <input type="text" id="set-brand-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Nama Pemilik / Penerbit</label>
+                      <input type="text" id="set-owner-name" class="form-control" required>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Email Kontak Resmi</label>
+                    <input type="email" id="set-owner-email" class="form-control" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">No. WhatsApp Resmi Founder</label>
+                    <input type="text" id="set-owner-phone" class="form-control" placeholder="085783656335" required>
+                    <div class="form-hint">Nomor ini otomatis disertakan dalam seluruh draf email tagihan & tombol WhatsApp (0857-8365-6335).</div>
+                  </div>
+                  <div class="form-divider"></div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">Nama Bank</label>
+                      <input type="text" id="set-bank-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Nomor Rekening</label>
+                      <input type="text" id="set-account-number" class="form-control" required>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Atas Nama Rekening</label>
+                    <input type="text" id="set-account-name" class="form-control" required>
+                  </div>
+                  <div class="form-divider"></div>
+                  <div class="form-group">
+                    <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                      <input type="checkbox" id="set-pin-enabled" style="width:16px;height:16px;accent-color:var(--accent-primary);">
+                      <span>Aktifkan Proteksi PIN Layar Kunci</span>
+                    </label>
+                    <div class="form-hint">Saat ini dinonaktifkan (Langsung masuk konsol tanpa PIN).</div>
+                  </div>
+                  <div class="form-group" id="pin-input-group" style="display:none;">
+                    <label class="form-label">PIN Akses Konsol</label>
+                    <input type="password" id="set-owner-pin" class="form-control" maxlength="8" placeholder="260803">
+                    <div class="form-hint">Masukkan 4–8 digit angka jika sewaktu-waktu ingin mengaktifkan proteksi.</div>
+                  </div>
+                  <button type="submit" class="btn btn-primary" style="margin-top:12px;">Simpan Perubahan</button>
+                </form>
+              </div>
+            </div>
+
+            <div class="panel-box">
+              <div class="panel-box-header" style="display:flex;justify-content:space-between;align-items:center;">
+                <h3 class="panel-box-title">Automasi Email (EmailJS Free Tier)</h3>
+                <span id="email-setup-status-badge" class="status-badge" style="font-size:11px;">Mengecek...</span>
+              </div>
+              <div class="panel-box-body">
+                <div id="email-setup-banner" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:var(--radius);padding:12px;margin-bottom:16px;font-size:12.5px;color:#0369a1;line-height:1.5;">
+                  <strong>Paket Gratis 100% (200 Email / Bulan):</strong> Hubungkan akun Gmail Anda (<code>fajaromadhan@gmail.com</code>) melalui EmailJS agar tagihan dan invoice terkirim otomatis di latar belakang tanpa biaya sewa server.
+                </div>
+
+                <!-- Panduan 4 Langkah Singkat -->
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:12px;color:var(--text-secondary);">
+                  <div style="font-weight:700;color:var(--text-main);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                    <span>📌 Panduan Cepat Setup EmailJS:</span>
+                    <a href="https://www.emailjs.com/" target="_blank" style="color:var(--color-primary);text-decoration:none;font-size:11.5px;font-weight:600;">
+                      Buka emailjs.com &rarr;
+                    </a>
+                  </div>
+                  <ol style="margin:0;padding-left:18px;line-height:1.7;">
+                    <li>Daftar akun gratis di <b>emailjs.com</b>.</li>
+                    <li>Di tab <b>Email Services</b> &rarr; Add Service &rarr; Pilih <b>Gmail</b> (hubungkan email Anda) &rarr; dapatkan <b>Service ID</b>.</li>
+                    <li>Di tab <b>Email Templates</b> &rarr; Buat template baru &rarr; isi Subject: <code>{{subject}}</code>, Body: <code>{{{message}}}</code>, To Email: <code>{{to_email}}</code> &rarr; Simpan & dapatkan <b>Template ID</b>.
+                      <button type="button" class="btn btn-secondary btn-sm" onclick="app.copyEmailJSTemplate()" style="margin-top:4px;display:inline-block;padding:2px 8px;font-size:11px;">
+                        <i data-feather="copy"></i> Salin Isi Body ({{{message}}})
+                      </button>
+                    </li>
+                    <li>Di menu profil <b>Account</b> &rarr; tab <b>API Keys</b> &rarr; salin <b>Public Key</b>.</li>
+                  </ol>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Service ID</label>
+                  <input type="text" id="set-emailjs-service" class="form-control" placeholder="service_xxxx" oninput="app.updateEmailSetupStatusBadge()">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Template ID</label>
+                  <input type="text" id="set-emailjs-template" class="form-control" placeholder="template_xxxx" oninput="app.updateEmailSetupStatusBadge()">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Public Key</label>
+                  <input type="text" id="set-emailjs-key" class="form-control" placeholder="public_key_xxxx" oninput="app.updateEmailSetupStatusBadge()">
+                </div>
+
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="app.saveSettingsFromForm()">
+                    <i data-feather="check"></i> Simpan Konfigurasi Email
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-test-emailjs" onclick="app.testEmailJS()" title="Kirim email percobaan ke fajaromadhan@gmail.com">
+                    <i data-feather="send"></i> ⚡ Tes Kirim Email Sekarang
+                  </button>
+                </div>
+
+                <div class="form-divider" style="margin:20px 0;"></div>
+
+                <h4 style="font-size:14px;color:var(--text-main);font-weight:700;margin-bottom:8px;">Pencadangan Database (.json)</h4>
+                <button class="btn btn-secondary btn-sm" onclick="window.db.exportJSON()" style="width:100%;margin-bottom:10px;">
+                  <i data-feather="download"></i> Download File Cadangan JSON
+                </button>
+                <input type="file" id="file-restore-json" accept=".json" class="form-control" style="cursor:pointer;">
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL 1: BUAT PESANAN LAYANAN BARU (1 KALI PROSES)
+       ========================================================= -->
+  <div class="modal-overlay" id="order-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="order-modal-title">Pesanan Layanan Baru</h3>
+          <p class="modal-subtitle">Catat pesanan layanan dan terbitkan invoice dalam 1 kali simpan</p>
+        </div>
+        <button class="btn-close" onclick="app.closeOrderModal()">&times;</button>
+      </div>
+
+      <form id="order-form" onsubmit="app.saveNewOrder(event)">
+        <div class="modal-body">
+          
+          <!-- Pemilihan Klien -->
+          <div class="form-group">
+            <label class="form-label">Pelanggan</label>
+            <select id="order-client-select" class="form-control" onchange="app.onOrderClientSelectChange()" required>
+              <!-- Diisi via JS: Klien lama atau opsi tambah baru -->
+            </select>
+          </div>
+
+          <!-- Jika input klien baru -->
+          <div id="new-client-fields" style="display:none;background:var(--bg-surface-subtle);border:1px solid var(--border-color);border-radius:var(--radius);padding:12px;margin-bottom:14px;">
+            <div class="form-group">
+              <label class="form-label">Nama Lengkap Klien</label>
+              <input type="text" id="order-new-client-name" class="form-control" placeholder="Nama Klien Baru">
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Email Klien</label>
+                <input type="email" id="order-new-client-email" class="form-control" placeholder="klien@gmail.com">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">No. WhatsApp</label>
+                <input type="text" id="order-new-client-phone" class="form-control" placeholder="628123456789">
+              </div>
+            </div>
+          </div>
+
+          <!-- Layanan -->
+          <div class="form-group">
+            <label class="form-label">Paket Layanan</label>
+            <select id="order-service-select" class="form-control">
+              <option value="SVC-GDRIVE-5TB" selected>Penyimpanan Drive 5 TB (Rp 150.000 / bulan)</option>
+            </select>
+          </div>
+
+          <!-- Durasi Cepat -->
+          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+            <span class="detail-label" style="font-size:11.5px;font-weight:600;color:var(--color-accent);">PILIH CEPAT DURASI:</span>
+            <div class="preset-pills-row" id="order-presets">
+              <button type="button" class="preset-pill active" onclick="app.setOrderDuration(1)">+1 Bulan</button>
+              <button type="button" class="preset-pill" onclick="app.setOrderDuration(3)">+3 Bulan</button>
+              <button type="button" class="preset-pill" onclick="app.setOrderDuration(6)">+6 Bulan</button>
+              <button type="button" class="preset-pill" onclick="app.setOrderDuration(12)">+1 Tahun</button>
+            </div>
+          </div>
+
+          <!-- Tanggal Periode -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Tanggal Mulai Periode</label>
+              <input type="date" id="order-start-date" class="form-control" onchange="app.onOrderStartDateChange()" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tanggal Berakhir (Jatuh Tempo)</label>
+              <input type="date" id="order-end-date" class="form-control" required>
+            </div>
+          </div>
+
+          <!-- Nominal Tagihan & Status -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Total Tagihan (Rp)</label>
+              <input type="number" id="order-price" class="form-control" value="150000" style="font-weight:700;" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status Pembayaran Awal</label>
+              <select id="order-payment-status" class="form-control">
+                <option value="paid" selected>Lunas (Pembayaran Diterima)</option>
+                <option value="unpaid">Belum Lunas (Menunggu Pembayaran)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Aksi Otomatis -->
+          <div class="checklist-box">
+            <div class="checklist-title">Aksi Otomatis:</div>
+            <label class="check-item">
+              <input type="checkbox" id="order-check-inv" checked disabled>
+              <span>Otomatis terbitkan dokumen invoice baru resmi (INV-YYYY-MMDD-NN)</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" id="order-check-open-pdf" checked>
+              <span>Langsung buka dokumen PDF invoice siap cetak / simpan</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.closeOrderModal()">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-order">
+            <i data-feather="check"></i> Simpan Pesanan & Terbitkan Invoice
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL: UBAH PERIODE LAYANAN LANGGANAN
+       ========================================================= -->
+  <div class="modal-overlay" id="edit-sub-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Ubah Periode Layanan</h3>
+          <p class="modal-subtitle">Koreksi atau sesuaikan tanggal masa aktif langganan</p>
+        </div>
+        <button class="btn-close" onclick="app.closeEditSubModal()">&times;</button>
+      </div>
+      <form id="edit-sub-form" onsubmit="app.saveSubPeriodEdit(event)">
+        <div class="modal-body">
+          <input type="hidden" id="edit-sub-id">
+
+          <!-- Ringkasan Klien -->
+          <div class="renew-card" style="margin-bottom:14px;">
+            <div class="renew-row">
+              <span class="text-secondary">Pelanggan:</span>
+              <span class="text-white font-bold" id="edit-sub-client-name">Dimas Imansyah</span>
+            </div>
+            <div class="renew-row">
+              <span class="text-secondary">Layanan:</span>
+              <span class="text-white" id="edit-sub-service-name">Penyimpanan Drive 5 TB</span>
+            </div>
+          </div>
+
+          <!-- Opsi Pilihan Cepat Durasi -->
+          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+            <span class="detail-label" style="font-size:11.5px;font-weight:600;color:var(--color-accent);">PILIH CEPAT DURASI (DARI TANGGAL MULAI):</span>
+            <div class="preset-pills-row" id="edit-sub-presets">
+              <button type="button" class="preset-pill" onclick="app.setEditSubDuration(1)">+1 Bulan</button>
+              <button type="button" class="preset-pill" onclick="app.setEditSubDuration(3)">+3 Bulan</button>
+              <button type="button" class="preset-pill" onclick="app.setEditSubDuration(6)">+6 Bulan</button>
+              <button type="button" class="preset-pill" onclick="app.setEditSubDuration(12)">+1 Tahun</button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Tanggal Mulai Layanan</label>
+              <input type="date" id="edit-sub-start" class="form-control" onchange="app.onEditSubDateChange('start')" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tanggal Jatuh Tempo (Akhir)</label>
+              <input type="date" id="edit-sub-end" class="form-control" onchange="app.onEditSubDateChange('end')" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nominal Langganan (Rp)</label>
+              <input type="number" id="edit-sub-price" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status Pembayaran / Pesanan</label>
+              <select id="edit-sub-payment-status" class="form-control">
+                <option value="paid">Lunas (Selesai / Terbayar)</option>
+                <option value="unpaid">Belum Lunas (Menunggu Pembayaran)</option>
+                <option value="cancelled">Dibatalkan</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Status & Preview Bar -->
+          <div style="background:var(--bg-surface-subtle);border:1px solid var(--border-color);border-radius:var(--radius);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+            <div>
+              <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Status Masa Aktif Baru</div>
+              <div style="font-size:12.5px;font-weight:600;color:var(--text-primary);" id="edit-sub-preview-text">Sisa 30 hari lagi</div>
+            </div>
+            <span class="status-badge badge-active" id="edit-sub-status-badge">Aktif</span>
+          </div>
+
+          <!-- Opsi Sinkronisasi ke Invoice -->
+          <div style="margin-top:12px;" id="edit-sub-sync-inv-container">
+            <label class="check-item" style="font-size:12px;color:var(--text-secondary);">
+              <input type="checkbox" id="edit-sub-sync-invoice" checked>
+              <span>Perbarui juga periode pada Invoice terakhir (<b id="edit-sub-last-inv-text">-</b>)</span>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.closeEditSubModal()">Batal</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-feather="check"></i> Simpan Perubahan Periode
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL: KELOLA DATA PELANGGAN (TAMBAH / EDIT KLIEN)
+       ========================================================= -->
+  <div class="modal-overlay" id="client-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="client-modal-title">Tambah Pelanggan Baru</h3>
+          <p class="modal-subtitle">Informasi profil pelanggan untuk penagihan dan pengiriman invoice</p>
+        </div>
+        <button class="btn-close" onclick="app.closeClientModal()">&times;</button>
+      </div>
+      <form id="client-form" onsubmit="app.saveClientFromModal(event)">
+        <div class="modal-body">
+          <input type="hidden" id="client-modal-id">
+          
+          <div class="form-group">
+            <label class="form-label">Nama Lengkap Pelanggan *</label>
+            <input type="text" id="client-modal-name" class="form-control" placeholder="Contoh: Dimas Imansyah" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Email Pelanggan *</label>
+              <input type="email" id="client-modal-email" class="form-control" placeholder="nama@gmail.com" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">No. WhatsApp *</label>
+              <input type="text" id="client-modal-phone" class="form-control" placeholder="08xxxxxxxxxx atau 628xxxxxxxxxx" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tipe Pelanggan</label>
+            <select id="client-modal-type" class="form-control">
+              <option value="personal">Personal / Perorangan</option>
+              <option value="business">Bisnis / Perusahaan</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Catatan Tambahan (Opsional)</label>
+            <textarea id="client-modal-notes" class="form-control" rows="2" placeholder="Catatan internal pelanggan..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.closeClientModal()">Batal</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-feather="check"></i> Simpan Pelanggan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL: UBAH PERIODE LAYANAN PADA DOKUMEN INVOICE
+       ========================================================= -->
+  <div class="modal-overlay" id="edit-inv-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Ubah Periode Dokumen Invoice</h3>
+          <p class="modal-subtitle">Perbarui tanggal periode layanan yang tercantum pada invoice</p>
+        </div>
+        <button class="btn-close" onclick="app.closeEditInvoiceModal()">&times;</button>
+      </div>
+      <form id="edit-inv-form" onsubmit="app.saveInvoicePeriodEdit(event)">
+        <div class="modal-body">
+          <input type="hidden" id="edit-inv-id">
+
+          <!-- Ringkasan Invoice -->
+          <div class="renew-card" style="margin-bottom:14px;">
+            <div class="renew-row">
+              <span class="text-secondary">Nomor Invoice:</span>
+              <span class="font-mono text-white font-bold" id="edit-inv-number-preview">INV-2026-0803-01</span>
+            </div>
+            <div class="renew-row">
+              <span class="text-secondary">Pelanggan:</span>
+              <span class="text-white" id="edit-inv-client-preview">Dimas Imansyah</span>
+            </div>
+          </div>
+
+          <!-- Pilihan Cepat Durasi Periode Invoice -->
+          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+            <span class="detail-label" style="font-size:11.5px;font-weight:600;color:var(--color-accent);">PILIH CEPAT DURASI (DARI TGL MULAI):</span>
+            <div class="preset-pills-row" id="edit-inv-presets">
+              <button type="button" class="preset-pill" onclick="app.setEditInvoiceDuration(1)">+1 Bulan</button>
+              <button type="button" class="preset-pill" onclick="app.setEditInvoiceDuration(3)">+3 Bulan</button>
+              <button type="button" class="preset-pill" onclick="app.setEditInvoiceDuration(6)">+6 Bulan</button>
+              <button type="button" class="preset-pill" onclick="app.setEditInvoiceDuration(12)">+1 Tahun</button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Periode Layanan Mulai</label>
+              <input type="date" id="edit-inv-period-from" class="form-control" onchange="app.onEditInvoiceDateChange('start')" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Periode Layanan Berakhir</label>
+              <input type="date" id="edit-inv-period-to" class="form-control" onchange="app.onEditInvoiceDateChange('end')" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Tanggal Terbit Invoice</label>
+              <input type="date" id="edit-inv-issue-date" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tanggal Jatuh Tempo</label>
+              <input type="date" id="edit-inv-due-date" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Total Tagihan (Rp)</label>
+              <input type="number" id="edit-inv-total" class="form-control" placeholder="150000" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status Pembayaran Dokumen</label>
+              <select id="edit-inv-payment-status" class="form-control">
+                <option value="paid">Lunas (Telah Diterima)</option>
+                <option value="unpaid">Belum Lunas (Menunggu Pembayaran)</option>
+                <option value="cancelled">Dibatalkan</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Opsi Sinkronisasi ke Subscription -->
+          <div style="margin-top:12px;">
+            <label class="check-item" style="font-size:12px;color:var(--text-secondary);">
+              <input type="checkbox" id="edit-inv-sync-sub" checked>
+              <span>Sinkronkan juga periode ini ke masa aktif langganan klien</span>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.closeEditInvoiceModal()">Batal</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-feather="check"></i> Simpan Periode Invoice
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL 2: PRATINJAU DOKUMEN INVOICE JAREE (SLATE BLUE #4F7BAE)
+       ========================================================= -->
+  <div class="modal-overlay" id="invoice-preview-modal">
+    <div class="modal-dialog modal-dialog-large">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Dokumen Resmi Invoice JAREE</h3>
+          <p class="modal-subtitle">Standar INV-2026-0803-01 · Slate Blue #4F7BAE</p>
+        </div>
+        <button class="btn-close" onclick="app.closeInvoiceModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="background:#f1f5f9;padding:24px;overflow-x:auto;">
+        <div id="invoice-modal-content"></div>
+      </div>
+      <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <button type="button" class="btn btn-danger btn-sm" onclick="app.deleteCurrentViewingInvoice()" title="Hapus Invoice Ini">
+            <i data-feather="trash-2"></i> Hapus Invoice
+          </button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button type="button" class="btn btn-secondary" onclick="app.closeInvoiceModal()">Tutup</button>
+          <button type="button" class="btn btn-sm" id="btn-toggle-inv-preview-status" onclick="app.toggleCurrentViewingInvoiceStatus()">
+            <i data-feather="check-circle"></i> Tandai Lunas
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="app.openEditInvoicePeriodModal(app.currentViewingInvoice?.id || app.currentViewingInvoice?.invoiceNumber)">
+            <i data-feather="edit-2"></i> Ubah Data Invoice
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="app.openSendEmailModalForCurrentInvoice()" title="Kirim Dokumen Invoice Ini ke Email Pelanggan">
+            <i data-feather="mail"></i> Kirim Email
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="app.downloadCurrentInvoicePDF()" title="Download file PDF langsung (nama file otomatis)">
+            <i data-feather="download"></i> Unduh PDF
+          </button>
+          <button type="button" class="btn btn-primary" onclick="app.printCurrentInvoice()" title="Cetak / Simpan PDF (nama file otomatis disesuaikan)">
+            <i data-feather="printer"></i> Cetak / Simpan PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL 4: KIRIM EMAIL TAGIHAN & NOTIFIKASI OTOMATIS
+       ========================================================= -->
+  <div class="modal-overlay" id="send-email-modal">
+    <div class="modal-dialog" style="max-width:580px;">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Kirim Email Otomatis</h3>
+          <p class="modal-subtitle">Pengiriman notifikasi tagihan & invoice resmi JAREE</p>
+        </div>
+        <button class="btn-close" onclick="app.closeSendEmailModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Status Banner EmailJS -->
+        <div id="email-service-status-banner" style="margin-bottom:14px;padding:10px 14px;border-radius:var(--radius);font-size:12.5px;line-height:1.5;">
+          <!-- Diisi via JS: Status EmailJS dan tombol cepat -->
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex:2;">
+            <label class="form-label">Email Penerima</label>
+            <input type="email" id="email-modal-recipient" class="form-control" placeholder="klien@gmail.com" required>
+          </div>
+          <div class="form-group" style="flex:1.2;">
+            <label class="form-label">Jenis Notifikasi</label>
+            <select id="email-modal-type" class="form-control" onchange="app.onEmailModalTypeChange()">
+              <option value="paid_confirmation">Bukti Pembayaran / Kwitansi (Lunas)</option>
+              <option value="invoice">Tagihan Invoice (Belum Lunas)</option>
+              <option value="reminder_h1">Pengingat Jatuh Tempo H-1</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Subjek Email</label>
+          <input type="text" id="email-modal-subject" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <label class="form-label" style="margin-bottom:0;">Isi Pesan Email</label>
+            <span style="font-size:11px;color:var(--text-secondary);">Dapat diedit sebelum dikirim</span>
+          </div>
+          <textarea id="email-modal-body" class="form-control" rows="10" spellcheck="false" style="font-family:monospace;font-size:12.5px;line-height:1.6;min-height:230px;resize:vertical;"></textarea>
+        </div>
+
+      </div>
+      <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button type="button" class="btn btn-secondary" onclick="app.closeSendEmailModal()">Batal</button>
+          <a href="https://wa.me/6285783656335" target="_blank" class="btn btn-whatsapp" id="btn-modal-wa-direct" title="Hubungi / Konfirmasi via WhatsApp Resmi 0857-8365-6335">
+            <i data-feather="message-circle"></i> Chat WA (0857-8365-6335)
+          </a>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="btn btn-secondary" id="btn-email-open-gmail" onclick="app.openInGmailWeb()" title="Buka dan kirim langsung di tab Gmail (100% Gratis)">
+            <i data-feather="external-link"></i> Buka di Gmail
+          </button>
+          <button type="button" class="btn btn-primary" id="btn-email-send-auto" onclick="app.sendAutoEmailViaEmailJS()" title="Kirim otomatis di latar belakang via EmailJS">
+            <i data-feather="send"></i> Kirim Otomatis
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL 3: PRIVATE FOUNDER PIN LOCK SCREEN
+       ========================================================= -->
+  <div class="lock-overlay" id="lock-screen" style="display:none;">
+    <div class="lock-panel">
+      <div class="lock-brand">JAREE</div>
+      <div class="lock-title">Konsol Pemilik (Fajar Romadhan)</div>
+      <div class="lock-caption">Sistem terlindungi sandi. Masukkan PIN untuk membuka.</div>
+      <form id="pin-unlock-form">
+        <input type="password" id="owner-pin-input" class="pin-input" maxlength="8" placeholder="••••••" autofocus autocomplete="off">
+        <div class="lock-error-text" id="lock-error-msg"></div>
+        <button type="submit" class="btn btn-primary" style="width:100%;padding:11px;">Buka Akses</button>
+      </form>
+      <div class="lock-hint">Default PIN: <code>260803</code></div>
+    </div>
+  </div>
+
+  <!-- TOAST SHELF -->
+  <div class="toast-shelf" id="toast-container"></div>
+
+  <!-- SCRIPTS -->
+  <script src="js/email.min.js"></script>
+  <script src="js/html2pdf.bundle.min.js"></script>
+  <script src="js/db.js?v=20260909_v16"></script>
+  <script src="js/automation.js?v=20260909_v16"></script>
+  <script src="js/invoice.js?v=20260909_v16"></script>
+  <script src="js/app.js?v=20260909_v16"></script>
+</body>
+</html>

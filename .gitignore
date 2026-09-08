@@ -1,0 +1,12 @@
+# OS & System
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment & Temp
+.env
+.env.local
+*.log
+
+# Node & dependencies (if any)
+node_modules/

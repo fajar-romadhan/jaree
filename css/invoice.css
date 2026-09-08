@@ -1,0 +1,688 @@
+/* =========================================================
+   JAREE INVOICE STYLESHEET (INV-2026-0803-01 Standard)
+   Design Concept: Corporate Minimalist (Ultra-Clean, Ink-Friendly, Precision Hairlines)
+   Signature Color: Slate Blue (#4F7BAE), Arang Slate (#0f172a), Soft Slate (#f8fafc)
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* INVOICE SHEET CONTAINER */
+.jaree-invoice-sheet {
+  max-width: 780px;
+  margin: 0 auto;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 36px 44px;
+  box-sizing: border-box;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12.5px;
+  line-height: 1.5;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+/* 1. HEADER ROW */
+.inv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.inv-brand-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inv-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.inv-logo-mark {
+  width: 38px;
+  height: 38px;
+  background: #4F7BAE;
+  color: #ffffff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(79, 123, 174, 0.25);
+}
+
+.inv-brand-name {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.inv-brand-sub {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.inv-brand-meta {
+  font-size: 11px;
+  color: #64748b;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.inv-title-col {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.inv-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  margin: 0;
+  color: #0f172a;
+}
+
+.inv-number-badge {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #4F7BAE;
+  letter-spacing: 0.5px;
+}
+
+.inv-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.inv-status-pill.badge-paid {
+  background: #ecfdf5;
+  color: #15803d;
+  border: 1px solid #a7f3d0;
+}
+
+.inv-status-pill.badge-unpaid {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* HAIRLINE DIVIDER */
+.inv-divider-thick {
+  height: 1px;
+  background: #e2e8f0;
+  margin-bottom: 22px;
+}
+
+/* 2. METADATA GRID */
+.inv-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  margin-bottom: 24px;
+}
+
+.inv-section-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.inv-client-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 3px;
+}
+
+.inv-client-info {
+  font-size: 12px;
+  color: #475569;
+  margin-bottom: 2px;
+}
+
+.inv-details-box {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.inv-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  padding: 3px 0;
+  border-bottom: 1px dashed #f1f5f9;
+}
+
+.inv-detail-row.highlight-period {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 5px;
+}
+
+.inv-detail-label {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.inv-detail-value {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.inv-period {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* 3. TABLE OF ITEMS */
+.inv-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+}
+
+.inv-table th {
+  padding: 9px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #475569;
+  text-transform: uppercase;
+  text-align: left;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1.5px solid #0f172a;
+  background-color: #f8fafc;
+}
+
+.inv-table th.th-num {
+  width: 32px;
+  text-align: center;
+}
+
+.inv-table th.th-qty {
+  text-align: center;
+  width: 75px;
+}
+
+.inv-table th.th-price,
+.inv-table th.th-total {
+  text-align: right;
+  width: 130px;
+}
+
+.inv-table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 12.5px;
+  vertical-align: middle;
+}
+
+.inv-table td.td-num {
+  text-align: center;
+  color: #94a3b8;
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.inv-table td.td-qty {
+  text-align: center;
+  color: #475569;
+  font-weight: 500;
+}
+
+.inv-table td.td-price,
+.inv-table td.td-total {
+  text-align: right;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.item-title {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.item-subtitle {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* 4. TOTALS & SIGNATURE BANNER */
+.inv-summary-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-bottom: 28px;
+}
+
+.inv-summary-rows {
+  width: 310px;
+  margin-bottom: 10px;
+}
+
+.summary-sub-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 3px 0;
+  color: #475569;
+}
+
+.summary-sub-row span:last-child {
+  font-family: monospace;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* SIGNATURE JAREE BANNER: SLATE BLUE #4F7BAE */
+.jaree-total-banner {
+  width: 310px;
+  background-color: #4F7BAE;
+  color: #ffffff;
+  padding: 12px 18px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(79, 123, 174, 0.25);
+}
+
+.banner-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.banner-note {
+  font-size: 9.5px;
+  color: #e2e8f0;
+  margin-top: 1px;
+}
+
+.banner-amount {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* 5. BOTTOM GRID: PAYMENT & NOTES */
+.inv-bottom-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 26px;
+  margin-bottom: 28px;
+}
+
+/* PAYMENT BOX WITH CORNER CROSSHAIRS (+) */
+.inv-payment-box {
+  position: relative;
+  border: 1px solid #cbd5e1;
+  padding: 16px 20px;
+  background: #ffffff;
+  border-radius: 2px;
+}
+
+.corner-cross {
+  position: absolute;
+  font-size: 15px;
+  line-height: 1;
+  font-weight: 300;
+  color: #64748b;
+  user-select: none;
+}
+
+.cross-tl { top: -7px; left: -5px; }
+.cross-tr { top: -7px; right: -5px; }
+.cross-bl { bottom: -7px; left: -5px; }
+.cross-br { bottom: -7px; right: -5px; }
+
+.payment-box-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #4F7BAE;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.payment-bank-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.payment-account-number {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.payment-account-name {
+  font-size: 11.5px;
+  color: #475569;
+}
+
+/* NOTES BOX */
+.inv-notes-box {
+  padding-top: 2px;
+}
+
+.notes-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #4F7BAE;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.notes-list {
+  margin: 0;
+  padding-left: 16px;
+  color: #475569;
+  font-size: 11.5px;
+}
+
+.notes-list li {
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+/* 6. DIGITAL VERIFICATION SEAL & FOOTER */
+.inv-footer-area {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 18px;
+  margin-bottom: 12px;
+}
+
+.inv-seal-container {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 460px;
+}
+
+/* DIGITAL STAMP / SEAL EMBLEM */
+.jaree-digital-seal {
+  flex-shrink: 0;
+  border: 1.5px solid #4F7BAE;
+  background: #f0f6fc;
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.seal-icon {
+  width: 20px;
+  height: 20px;
+  color: #4F7BAE;
+}
+
+.seal-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.seal-title {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: #4F7BAE;
+  line-height: 1.1;
+}
+
+.seal-desc {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.inv-legal-disclaimer {
+  font-size: 10.5px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.inv-signature-block {
+  text-align: center;
+  width: 170px;
+  position: relative;
+}
+
+.signature-stamp-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 26px;
+}
+
+/* AUTHENTIC CORPORATE STAMP / CAP STEMPEL RESMI */
+.official-stamp-badge {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-12deg);
+  width: 116px;
+  height: 116px;
+  pointer-events: none;
+  opacity: 0.90;
+  mix-blend-mode: multiply;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08));
+  z-index: 2;
+  transition: transform 0.2s ease;
+}
+
+.official-stamp-badge.stamp-paid {
+  color: #b91c1c; /* Cap Lunas Resmi (Crimson Red) */
+}
+
+.official-stamp-badge.stamp-unpaid {
+  color: #4F7BAE; /* Cap Dokumen Resmi (Slate Blue) */
+}
+
+.stamp-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.signature-seal-stamp {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.signature-line {
+  width: 100%;
+  height: 1px;
+  background: #0f172a;
+  margin-bottom: 5px;
+  position: relative;
+  z-index: 1;
+}
+
+.signature-signer {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+  position: relative;
+  z-index: 1;
+}
+
+.signature-role {
+  font-size: 10px;
+  color: #64748b;
+  position: relative;
+  z-index: 1;
+}
+
+/* 7. MICRO FOOTER */
+.inv-micro-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9.5px;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 6px;
+}
+
+/* PRINT & A4 PERFECT RULES */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Sembunyikan seluruh UI dashboard admin dan modal lainnya */
+  .app-shell,
+  .sidebar,
+  .topbar,
+  .panel-box,
+  .stat-card,
+  .lock-overlay,
+  .toast-shelf,
+  .modal-overlay:not(#invoice-preview-modal),
+  #invoice-preview-modal .modal-header,
+  #invoice-preview-modal .modal-footer,
+  #invoice-preview-modal .btn-close {
+    display: none !important;
+  }
+
+  /* Format modal invoice agar mencetak sheet lembar A4 secara bersih */
+  #invoice-preview-modal {
+    position: static !important;
+    display: block !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  #invoice-preview-modal .modal-dialog {
+    position: static !important;
+    display: block !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    transform: none !important;
+  }
+
+  #invoice-preview-modal .modal-body {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    overflow: visible !important;
+  }
+
+  #invoice-modal-content {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Lembar Invoice Resmi JAREE */
+  .jaree-invoice-sheet {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 28px 36px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #ffffff !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    box-sizing: border-box !important;
+  }
+
+  .jaree-total-banner {
+    background-color: #4F7BAE !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .official-stamp-badge {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
