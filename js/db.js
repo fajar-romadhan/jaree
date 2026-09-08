@@ -43,6 +43,15 @@ const DEFAULT_SETTINGS = {
     enabled: true,
     triggers: [7, 3, 1, 0],
     overdueGraceDays: 3
+  },
+  firebase: {
+    enabled: false,
+    apiKey: '',
+    authDomain: '',
+    projectId: '',
+    storageBucket: '',
+    messagingSenderId: '',
+    appId: ''
   }
 };
 
@@ -322,12 +331,18 @@ class JareeDB {
     }
   }
 
-  save() {
+  saveLocalOnly() {
     try {
       localStorage.setItem(DB_KEY, JSON.stringify(this.data));
     } catch (err) {
       console.error('LocalStorage save error:', err);
-      alert('Peringatan: Kapasitas penyimpanan browser penuh!');
+    }
+  }
+
+  save() {
+    this.saveLocalOnly();
+    if (window.cloudSync && typeof window.cloudSync.pushLocalToRemote === 'function') {
+      window.cloudSync.pushLocalToRemote();
     }
   }
 

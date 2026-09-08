@@ -34,6 +34,10 @@ class JareeApp {
     this.setupEventListeners();
     this.renderAllViews();
 
+    if (window.cloudSync) {
+      window.cloudSync.init();
+    }
+
     if (window.feather) feather.replace();
     console.log('JAREE Admin System Ready.');
 
@@ -493,10 +497,24 @@ class JareeApp {
     document.getElementById('set-emailjs-template').value = settings.email.templateId || '';
     document.getElementById('set-emailjs-key').value = settings.email.publicKey || '';
     this.updateEmailSetupStatusBadge();
+
+    // Render data Firebase Cloud Sync
+    const fbInput = document.getElementById('set-firebase-config-input');
+    if (fbInput) {
+      const fb = settings.firebase;
+      if (fb && fb.apiKey) {
+        fbInput.value = JSON.stringify(fb, null, 2);
+      }
+    }
+    if (window.cloudSync) {
+      window.cloudSync.updateUIStatus();
+    }
   }
 
   saveSettingsFromForm() {
+    const current = window.db.getSettings();
     const newSettings = {
+      ...current,
       profile: {
         brandName: document.getElementById('set-brand-name').value.trim(),
         ownerName: document.getElementById('set-owner-name').value.trim(),
@@ -1508,6 +1526,55 @@ class JareeApp {
     };
     reader.readAsText(file);
     e.target.value = '';
+  }
+
+  saveFirebaseConfig() {
+    const raw = document.getElementById('set-firebase-config-input')?.value || '';
+    if (!raw.trim()) {
+      alert('Silakan tempelkan kode firebaseConfig terlebih dahulu.');
+      return;
+    }
+
+    const parsed = window.cloudSync.parseFirebaseConfigString(raw);
+    if (!parsed) {
+      alert('Format firebaseConfig tidak dapat dikenali. Pastikan menyertakan apiKey dan projectId.');
+      return;
+    }
+
+    const settings = window.db.getSettings();
+    settings.firebase = {
+      enabled: true,
+      ...parsed
+    };
+    window.db.saveSettings(settings);
+
+    this.showToast('Konfigurasi Firebase disimpan! Menghubungkan ke Cloud...', 'info');
+    window.cloudSync.init();
+
+    // Auto-push current local data if cloud is empty
+    setTimeout(() => {
+      window.cloudSync.syncInitial();
+    }, 800);
+  }
+
+  async pushCurrentDataToCloud() {
+    if (!window.cloudSync || window.cloudSync.status === 'disconnected') {
+      alert('Cloud Database belum terhubung. Silakan simpan konfigurasi Firebase terlebih dahulu.');
+      return;
+    }
+    this.showToast('Mengunggah seluruh data lokal saat ini ke Cloud...', 'info');
+    await window.cloudSync.pushLocalToRemote();
+    this.showToast('✅ Data lokal berhasil diunggah ke Cloud!', 'success');
+  }
+
+  async pullDataFromCloud() {
+    if (!window.cloudSync || window.cloudSync.status === 'disconnected') {
+      alert('Cloud Database belum terhubung. Silakan simpan konfigurasi Firebase terlebih dahulu.');
+      return;
+    }
+    this.showToast('Menarik data terbaru dari Cloud...', 'info');
+    await window.cloudSync.syncInitial();
+    this.showToast('✅ Data berhasil diperbarui dari Cloud!', 'success');
   }
 
   // =========================================================

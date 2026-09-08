@@ -77,8 +77,9 @@
       
       <!-- TOPBAR -->
       <header class="topbar">
-        <div class="topbar-left">
+        <div class="topbar-left" style="display:flex;align-items:center;gap:12px;">
           <h1 class="page-heading" id="page-heading">Dashboard Langganan</h1>
+          <span id="topbar-cloud-badge" class="status-badge" style="display:none;background:#ecfdf5;color:#15803d;font-size:11px;font-weight:700;padding:3px 8px;border-radius:12px;border:1px solid #a7f3d0;">🟢 Cloud Live</span>
         </div>
         <div class="topbar-right" style="display:flex;gap:8px;align-items:center;">
           <button class="btn btn-secondary btn-sm" onclick="window.db.exportJSON()" title="Download cadangan data database (.json)">
@@ -427,6 +428,57 @@
                   <i data-feather="download"></i> Download File Cadangan JSON
                 </button>
                 <input type="file" id="file-restore-json" accept=".json" class="form-control" style="cursor:pointer;">
+              </div>
+            </div>
+
+            <!-- PANEL 3: SINKRONISASI CLOUD DATABASE REALTIME (FIREBASE) -->
+            <div class="panel-box" style="grid-column: 1 / -1;margin-top:16px;">
+              <div class="panel-box-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                <div>
+                  <h3 class="panel-box-title">☁️ Sinkronisasi Cloud Database Realtime (Multi-Akun & Multi-Perangkat)</h3>
+                  <div id="cloud-sync-status-desc" style="font-size:12px;color:var(--text-secondary);margin-top:2px;">
+                    Sinkronisasi data otomatis 24/7 di semua akun Chrome, laptop, dan HP Anda secara live.
+                  </div>
+                </div>
+                <span id="cloud-sync-status-badge" class="status-badge" style="font-size:11.5px;font-weight:700;">🟡 Mode Lokal (Belum Terhubung)</span>
+              </div>
+              <div class="panel-box-body">
+                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;font-size:12.5px;color:#166534;line-height:1.6;">
+                  <strong>100% Gratis Selamanya (Google Firebase Spark Plan):</strong> Kuota gratis 50.000 pembacaan & 20.000 penyimpanan per hari (sangat melimpah untuk ribuan invoice). Begitu terhubung, invoice yang Anda buat di profil <code>fajaromadhan@gmail.com</code> seketika otomatis muncul di profil Chrome lain atau HP Anda tanpa perlu ekspor-impor manual!
+                </div>
+
+                <!-- Panduan 3 Langkah Cepat -->
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:12px;color:var(--text-secondary);">
+                  <div style="font-weight:700;color:var(--text-main);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                    <span>📌 Cara Mendapatkan Konfigurasi Firebase (Cukup 2 Menit):</span>
+                    <a href="https://console.firebase.google.com/" target="_blank" style="color:var(--color-primary);text-decoration:none;font-size:11.5px;font-weight:600;">
+                      Buka console.firebase.google.com &rarr;
+                    </a>
+                  </div>
+                  <ol style="margin:0;padding-left:18px;line-height:1.7;">
+                    <li>Buka <b>console.firebase.google.com</b> &rarr; Klik <b>Add project</b> (beri nama: <code>jaree</code>).</li>
+                    <li>Di menu sebelah kiri, pilih <b>Build &rarr; Firestore Database &rarr; Create database</b> &rarr; Pilih <b>Start in test mode</b> (Mode Pengujian) &rarr; Next &rarr; Enable.</li>
+                    <li>Di halaman utama Project Overview, klik ikon Web (<b>&lt;/&gt;</b>) &rarr; daftarkan aplikasi (nama: <code>jaree-web</code>) &rarr; Salin kode <code>firebaseConfig</code> dan tempelkan di kotak di bawah ini &rarr; Klik <b>Simpan & Hubungkan Cloud</b>.</li>
+                  </ol>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" style="font-weight:700;">Tempelkan Objek firebaseConfig atau JSON di Sini:</label>
+                  <textarea id="set-firebase-config-input" class="form-control" rows="4" placeholder="const firebaseConfig = {&#10;  apiKey: &quot;AIzaSy...&quot;,&#10;  authDomain: &quot;jaree-xxx.firebaseapp.com&quot;,&#10;  projectId: &quot;jaree-xxx&quot;,&#10;  storageBucket: &quot;jaree-xxx.appspot.com&quot;,&#10;  messagingSenderId: &quot;...&quot;,&#10;  appId: &quot;...&quot;&#10;};" style="font-family:monospace;font-size:11.5px;"></textarea>
+                  <div class="form-hint">Sistem akan otomatis mendeteksi apiKey, projectId, dan pengaturan lainnya dari teks yang Anda tempelkan.</div>
+                </div>
+
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center;">
+                  <button type="button" class="btn btn-primary" onclick="app.saveFirebaseConfig()">
+                    <i data-feather="cloud"></i> Simpan & Hubungkan Cloud Sync
+                  </button>
+                  <button type="button" class="btn btn-secondary" onclick="app.pushCurrentDataToCloud()" title="Unggah seluruh data lokal saat ini ke cloud">
+                    <i data-feather="upload-cloud"></i> ⚡ Unggah Data Saat Ini ke Cloud
+                  </button>
+                  <button type="button" class="btn btn-secondary" onclick="app.pullDataFromCloud()" title="Tarik data terbaru dari cloud ke browser ini">
+                    <i data-feather="download-cloud"></i> 📥 Tarik Data dari Cloud
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -922,12 +974,17 @@
   <!-- TOAST SHELF -->
   <div class="toast-shelf" id="toast-container"></div>
 
+  <!-- FIREBASE SDK (COMPAT) FOR CLOUD REALTIME SYNC -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+
   <!-- SCRIPTS -->
   <script src="js/email.min.js"></script>
   <script src="js/html2pdf.bundle.min.js"></script>
-  <script src="js/db.js?v=20260909_v21"></script>
-  <script src="js/automation.js?v=20260909_v21"></script>
-  <script src="js/invoice.js?v=20260909_v21"></script>
-  <script src="js/app.js?v=20260909_v21"></script>
+  <script src="js/db.js?v=20260909_v22"></script>
+  <script src="js/cloud-sync.js?v=20260909_v22"></script>
+  <script src="js/automation.js?v=20260909_v22"></script>
+  <script src="js/invoice.js?v=20260909_v22"></script>
+  <script src="js/app.js?v=20260909_v22"></script>
 </body>
 </html>

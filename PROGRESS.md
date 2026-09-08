@@ -407,6 +407,20 @@ Bagian ini mencatat seluruh bug yang pernah terjadi agar **TIDAK PERNAH DIULANGI
        - Mengimplementasikan `app.handleRestoreJSON(event)` di `js/app.js` untuk kemudahan sinkronisasi instan antar akun/perangkat dengan 1 klik unggah file cadangan `.json`.
        - Menyiapkan opsi integrasi Cloud Database online (Firebase Firestore / Supabase) jika Founder menginginkan sinkronisasi data live 24/7 tanpa ekspor-impor manual.
      - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v21`.
+  10. **Implementasi Real-Time Cloud Sync (Google Firebase Firestore — 100% Gratis Selamanya)**:
+      - **Permintaan Pengguna**: Pengguna memilih menghubungkan Cloud Database otomatis agar data tersinkron 24/7 di semua akun Chrome, laptop, dan HP tanpa perlu backup-restore manual.
+      - **Tindakan**:
+        - Membangun mesin sinkronisasi mandiri `js/cloud-sync.js` (CloudSyncEngine) dengan Firestore Realtime Listener (`onSnapshot`).
+        - Menghubungkan Firebase Compat SDK di `index.html` (Google Cloud CDN).
+        - Memperbarui `js/db.js` dengan arsitektur Dual-Layer: `saveLocalOnly()` (cache instan offline) dan `save()` (sinkron otomatis ke cloud).
+        - Menambahkan kartu pengaturan lengkap di **Pengaturan & Rekening**:
+          - Kotak input multi-format (otomatis mendeteksi objek JS `const firebaseConfig = { ... }` maupun JSON).
+          - Tombol `[Simpan & Hubungkan Cloud Sync]`.
+          - Tombol `[⚡ Unggah Data Saat Ini ke Cloud]` untuk upload 2 invoice yang ada saat ini (`INV-2026-0803-01` & `INV-2026-0909-01`).
+          - Tombol `[📥 Tarik Data dari Cloud]`.
+          - Panduan ringkas 3 langkah membuat project gratis di `console.firebase.google.com`.
+        - Menambahkan indikator status hijau `🟢 Cloud Live` di Topbar dashboard saat terhubung.
+      - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v22`.
 
 ---
 
