@@ -392,6 +392,12 @@ Bagian ini mencatat seluruh bug yang pernah terjadi agar **TIDAK PERNAH DIULANGI
        - Kolom `TAGIHAN KEPADA` kini hanya menampilkan **Nama Klien** dan **Email Klien** secara bersih, profesional, dan rapi sesuai standar format referensi `INV-2026-0803-01`.
        - Data nomor WhatsApp klien tetap tersimpan aman di database untuk kebutuhan komunikasi dan kirim pesan via WA.
      - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v19`.
+  8. **Pembersihan Draf Email: Menghilangkan Tautan Panjang Unduh PDF Digital**:
+     - **Permintaan Pengguna**: Menghilangkan teks blok tautan `🔗 Buka & Unduh Dokumen Invoice PDF Resmi: https://.../?d=...` dari isi pesan email.
+     - **Tindakan**:
+       - Mengedit `js/automation.js` pada fungsi `generateEmailDraft` untuk menghapus penyisipan blok tautan URL Base64 yang panjang ke dalam template body email (baik pada konfirmasi lunas, pengingat H-1, maupun tagihan baru).
+       - Teks email kini tampil ringkas, bersih, dan elegan tanpa baris tautan yang berantakan, sehingga Founder dapat melampirkan file PDF secara langsung atau mengirim pesan tanpa tautan panjang.
+     - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v20`.
 
 ---
 

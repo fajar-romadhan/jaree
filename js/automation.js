@@ -315,10 +315,6 @@ Fajar Romadhan (Founder)`;
       console.warn('Could not generate digital invoice link', e);
     }
 
-    const invoiceLinkBlock = digitalInvoiceLink 
-      ? `\n🔗 Buka & Unduh Dokumen Invoice PDF Resmi:\n${digitalInvoiceLink}\n` 
-      : '';
-
     if (type === 'paid_confirmation' || (type === 'invoice' && isPaid)) {
       // 1. DRAF BUKTI PEMBAYARAN / KWITANSI RESMI (STATUS LUNAS)
       subject = `[JAREE] Bukti Pembayaran Lunas (Kwitansi) — Invoice ${invNumber}`;
@@ -334,7 +330,7 @@ Kami mengonfirmasi bahwa tagihan invoice ${invNumber} sebesar ${priceStr} telah 
 • Periode Masa Aktif: ${periodStr}
 • Status Pembayaran: LUNAS (Terverifikasi Resmi)
 • Tanggal Pembayaran: ${paidDateStr}
-${invoiceLinkBlock}
+
 Akun ${serviceName} Anda telah aktif sepenuhnya untuk periode di atas tanpa jeda atau kendala. Dokumen ini berlaku sebagai bukti pembayaran dan kwitansi resmi dari JAREE.
 
 ${contactFooterText}`;
@@ -352,7 +348,7 @@ Rincian Status Layanan:
 • Layanan: ${serviceName}
 • Periode Masa Aktif: ${periodStr}
 • Status Pembayaran: LUNAS (Tidak ada tagihan tertunggak)
-${invoiceLinkBlock}
+
 Terima kasih atas kerja sama dan kepercayaan Anda bersama JAREE. Akun Anda tetap aktif lancar.
 
 ${contactFooterText}`;
@@ -369,7 +365,7 @@ Rincian Tagihan:
 🗓️ Periode Perpanjangan: ${periodStr}
 💰 Total Tagihan: ${priceStr}
 ⏰ Batas Waktu: ${dueDateStr}
-${invoiceLinkBlock}
+
 Instruksi Pembayaran:
 Bank: ${settings.payment.bankName}
 No. Rekening: ${settings.payment.accountNumber}
@@ -394,7 +390,7 @@ Berikut kami sampaikan rincian tagihan invoice untuk periode layanan Anda:
 🗓️ Periode Layanan: ${periodStr}
 ⏰ Jatuh Tempo: ${dueDateStr}
 💰 Total Tagihan: ${priceStr}
-${invoiceLinkBlock}
+
 Pembayaran dapat ditransfer melalui rekening resmi JAREE:
 🏦 Bank: ${settings.payment.bankName}
 💳 No. Rekening: ${settings.payment.accountNumber}
