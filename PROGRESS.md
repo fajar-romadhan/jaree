@@ -420,7 +420,8 @@ Bagian ini mencatat seluruh bug yang pernah terjadi agar **TIDAK PERNAH DIULANGI
           - Tombol `[📥 Tarik Data dari Cloud]`.
           - Panduan ringkas 3 langkah membuat project gratis di `console.firebase.google.com`.
         - Menambahkan indikator status hijau `🟢 Cloud Live` di Topbar dashboard saat terhubung.
-      - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v22`.
+        - **Auto-Config Proyek Resmi Founder**: Mengintegrasikan kredensial project `jaree-946de` (`apiKey: AIzaSyBQOb4otLRsETQgTCCppcQGauYtuVTBACc`) langsung ke `DEFAULT_SETTINGS` dan auto-migrasi LocalStorage, sehingga seluruh akun Chrome dan perangkat otomatis terhubung ke cloud secara instan tanpa perlu input manual.
+      - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v23`.
 
 ---
 

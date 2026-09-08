@@ -184,7 +184,9 @@ class CloudSyncEngine {
     this.isSyncing = true;
     try {
       const docRef = this.firestore.collection('jaree_db').doc('current');
-      await docRef.set(window.db.data);
+      const payload = JSON.parse(JSON.stringify(window.db.data));
+      await docRef.set(payload);
+      console.log('Database JAREE berhasil disinkronkan ke Firebase Cloud!');
     } catch (e) {
       console.error('Failed to push to Firebase:', e);
     } finally {

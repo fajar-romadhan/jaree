@@ -22,6 +22,14 @@
   - Template ID: `template_277378i`
   - Public Key: `33YWwbogyPk8u4NFH`
   - Fallback: Direct 1-Click Gmail Web Compose deep link (`mail.google.com`)
+- **Cloud Database Realtime Sync Gateway (Google Firebase Firestore — 100% Free)**:
+  - Project ID: `jaree-946de`
+  - Auth Domain: `jaree-946de.firebaseapp.com`
+  - Storage Bucket: `jaree-946de.firebasestorage.app`
+  - API Key: `AIzaSyBQOb4otLRsETQgTCCppcQGauYtuVTBACc`
+  - App ID: `1:347412861890:web:083acb53483e0bbc177c5b`
+  - Measurement ID: `G-4D8203SF90`
+  - Collection: `jaree_db` / Doc: `current` (Sinkronisasi live 24/7 di seluruh akun Chrome & perangkat Founder)
 
 ### 1.2 Tahapan Evolusi Bisnis (Roadmap)
 1. **Fase 1 (Current / Immediate Need)**: 

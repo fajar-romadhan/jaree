@@ -45,13 +45,14 @@ const DEFAULT_SETTINGS = {
     overdueGraceDays: 3
   },
   firebase: {
-    enabled: false,
-    apiKey: '',
-    authDomain: '',
-    projectId: '',
-    storageBucket: '',
-    messagingSenderId: '',
-    appId: ''
+    enabled: true,
+    apiKey: "AIzaSyBQOb4otLRsETQgTCCppcQGauYtuVTBACc",
+    authDomain: "jaree-946de.firebaseapp.com",
+    projectId: "jaree-946de",
+    storageBucket: "jaree-946de.firebasestorage.app",
+    messagingSenderId: "347412861890",
+    appId: "1:347412861890:web:083acb53483e0bbc177c5b",
+    measurementId: "G-4D8203SF90"
   }
 };
 
@@ -235,7 +236,21 @@ class JareeDB {
         if (!this.data.settings.email.publicKey || this.data.settings.email.publicKey === '') {
           this.data.settings.email.publicKey = '33YWwbogyPk8u4NFH';
         }
-        this.save();
+
+        // Auto-migrasi kredensial Firebase Cloud Sync resmi Fajar Romadhan
+        if (!this.data.settings.firebase || !this.data.settings.firebase.apiKey || this.data.settings.firebase.projectId !== 'jaree-946de') {
+          this.data.settings.firebase = {
+            enabled: true,
+            apiKey: "AIzaSyBQOb4otLRsETQgTCCppcQGauYtuVTBACc",
+            authDomain: "jaree-946de.firebaseapp.com",
+            projectId: "jaree-946de",
+            storageBucket: "jaree-946de.firebasestorage.app",
+            messagingSenderId: "347412861890",
+            appId: "1:347412861890:web:083acb53483e0bbc177c5b",
+            measurementId: "G-4D8203SF90"
+          };
+        }
+        this.saveLocalOnly();
 
         // Sinkronisasi data awal Dimas Imansyah jika belum ada
         if (this.data.clients.length === 0 || !this.data.clients.find(c => c.name === 'Dimas Imansyah')) {
