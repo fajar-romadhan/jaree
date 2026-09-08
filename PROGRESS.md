@@ -398,6 +398,15 @@ Bagian ini mencatat seluruh bug yang pernah terjadi agar **TIDAK PERNAH DIULANGI
        - Mengedit `js/automation.js` pada fungsi `generateEmailDraft` untuk menghapus penyisipan blok tautan URL Base64 yang panjang ke dalam template body email (baik pada konfirmasi lunas, pengingat H-1, maupun tagihan baru).
        - Teks email kini tampil ringkas, bersih, dan elegan tanpa baris tautan yang berantakan, sehingga Founder dapat melampirkan file PDF secara langsung atau mengirim pesan tanpa tautan panjang.
      - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v20`.
+  9. **Penyelarasan Data Antar Profil Chrome & Fitur 1-Klik Restore Topbar**:
+     - **Penyebab Masalah (Root Cause)**:
+       - Aplikasi menyimpan data pada **LocalStorage** browser (`JAREE_DB_V1`).
+       - Google Chrome secara ketat memisahkan (*sandbox*) ruang LocalStorage untuk setiap profil akun pengguna (misal profil `fajaromadhan@gmail.com` vs akun Google lainnya di laptop). Akibatnya, pesanan/invoice baru yang dibuat di Profil A tersimpan di storage Profil A dan tidak otomatis ada di storage Profil B.
+     - **Tindakan**:
+       - Menambahkan tombol **`[📥 Restore Data (.json)]`** langsung di Topbar sejajar dengan tombol `[Backup Data (.json)]`.
+       - Mengimplementasikan `app.handleRestoreJSON(event)` di `js/app.js` untuk kemudahan sinkronisasi instan antar akun/perangkat dengan 1 klik unggah file cadangan `.json`.
+       - Menyiapkan opsi integrasi Cloud Database online (Firebase Firestore / Supabase) jika Founder menginginkan sinkronisasi data live 24/7 tanpa ekspor-impor manual.
+     - **Versi Cache-Busting**: Di-bump ke `?v=20260909_v21`.
 
 ---
 

@@ -80,10 +80,14 @@
         <div class="topbar-left">
           <h1 class="page-heading" id="page-heading">Dashboard Langganan</h1>
         </div>
-        <div class="topbar-right">
-          <button class="btn btn-secondary btn-sm" onclick="window.db.exportJSON()">
+        <div class="topbar-right" style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-secondary btn-sm" onclick="window.db.exportJSON()" title="Download cadangan data database (.json)">
             <i data-feather="download"></i> Backup Data (.json)
           </button>
+          <label class="btn btn-secondary btn-sm" style="margin:0;cursor:pointer;" title="Pulihkan / Sinkronkan data dari file backup (.json)">
+            <i data-feather="upload"></i> Restore Data (.json)
+            <input type="file" id="topbar-restore-json" accept=".json" style="display:none;" onchange="app.handleRestoreJSON(event)">
+          </label>
           <button class="btn btn-secondary btn-sm" id="btn-lock-console" style="display:none;" onclick="app.lockConsole()">
             <i data-feather="lock"></i> Kunci Sesi
           </button>
@@ -921,9 +925,9 @@
   <!-- SCRIPTS -->
   <script src="js/email.min.js"></script>
   <script src="js/html2pdf.bundle.min.js"></script>
-  <script src="js/db.js?v=20260909_v20"></script>
-  <script src="js/automation.js?v=20260909_v20"></script>
-  <script src="js/invoice.js?v=20260909_v20"></script>
-  <script src="js/app.js?v=20260909_v20"></script>
+  <script src="js/db.js?v=20260909_v21"></script>
+  <script src="js/automation.js?v=20260909_v21"></script>
+  <script src="js/invoice.js?v=20260909_v21"></script>
+  <script src="js/app.js?v=20260909_v21"></script>
 </body>
 </html>

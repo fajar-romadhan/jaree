@@ -1485,6 +1485,31 @@ class JareeApp {
     }
   }
 
+  handleRestoreJSON(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const res = window.db.importJSON(evt.target.result);
+        if (res.success) {
+          if (typeof this.showToast === 'function') {
+            this.showToast('Database berhasil dipulihkan! Memuat ulang data...', 'success');
+          } else {
+            alert(res.message);
+          }
+          setTimeout(() => location.reload(), 600);
+        } else {
+          alert('Gagal restore: ' + res.message);
+        }
+      } catch (err) {
+        alert('Format file cadangan tidak valid: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }
+
   // =========================================================
   // MODUL PENGIRIMAN EMAIL OTOMATIS & PANDUAN SETUP EMAILJS
   // =========================================================
