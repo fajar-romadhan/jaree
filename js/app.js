@@ -5,9 +5,18 @@
 
 class JareeApp {
   constructor() {
+    window.app = this;
     this.currentView = 'dashboard';
     this.activeRenewalSub = null;
     this.init();
+  }
+
+  renderAll() {
+    this.renderAllViews();
+  }
+
+  navigateTo(viewName) {
+    this.navigate(viewName);
   }
 
   init() {

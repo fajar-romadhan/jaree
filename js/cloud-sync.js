@@ -71,7 +71,7 @@ class CloudSyncEngine {
         topbarBadge.style.color = '#15803d';
         topbarBadge.style.borderColor = '#a7f3d0';
         topbarBadge.innerHTML = '🟢 Cloud Live';
-        topbarBadge.title = 'Tersambung ke Cloud Database. Data otomatis tersinkron.';
+        topbarBadge.title = 'Tersambung ke Cloud Database. Data otomatis tersinkron 24/7.';
       }
     } else if (this.status === 'syncing') {
       if (badge) {
@@ -82,6 +82,9 @@ class CloudSyncEngine {
       }
       if (topbarBadge) {
         topbarBadge.style.display = 'inline-flex';
+        topbarBadge.style.background = '#fef3c7';
+        topbarBadge.style.color = '#b45309';
+        topbarBadge.style.borderColor = '#fde68a';
         topbarBadge.innerHTML = '🔄 Syncing...';
       }
     } else if (this.status === 'error') {
@@ -98,7 +101,7 @@ class CloudSyncEngine {
         } else if (isDbNotCreated) {
           badge.innerHTML = '⚠️ Firestore Belum Diaktifkan di Firebase';
         } else {
-          badge.innerHTML = '⚠️ Gagal Terhubung ke Cloud';
+          badge.innerHTML = '⚠️ Perlu Refresh / Sambungkan Cloud';
         }
       }
       if (desc) {
@@ -107,7 +110,7 @@ class CloudSyncEngine {
         } else if (isDbNotCreated) {
           desc.innerHTML = '<b>Langkah Terakhir:</b> Database Firestore belum dibuat di Firebase Console. Buka <a href="https://console.firebase.google.com/project/jaree-946de/firestore" target="_blank" style="color:#0369a1;font-weight:700;text-decoration:underline;">Firebase Console &rarr; Firestore Database &rarr; Create Database</a> (Pilih <i>Start in test mode</i>) agar sinkronisasi aktif!';
         } else {
-          desc.innerHTML = errMsg || 'Periksa kembali konfigurasi Firebase di Pengaturan.';
+          desc.innerHTML = errMsg || 'Periksa kembali koneksi atau konfigurasi Firebase di Pengaturan.';
         }
       }
       if (topbarBadge) {
@@ -117,8 +120,8 @@ class CloudSyncEngine {
         topbarBadge.style.borderColor = '#fca5a5';
         topbarBadge.style.cursor = 'pointer';
         topbarBadge.onclick = () => {
-          if (window.app && typeof window.app.navigateTo === 'function') {
-            window.app.navigateTo('settings');
+          if (window.app && typeof window.app.navigate === 'function') {
+            window.app.navigate('settings');
             const target = document.getElementById('cloud-sync-status-badge');
             if (target) target.scrollIntoView({ behavior: 'smooth' });
           }
@@ -126,9 +129,12 @@ class CloudSyncEngine {
         if (isPermissionDenied) {
           topbarBadge.innerHTML = '⚠️ Cloud: Buka Aturan Rules Firestore';
           topbarBadge.title = 'Klik untuk membuka panduan buka Rules di Firebase Console';
-        } else {
+        } else if (isDbNotCreated) {
           topbarBadge.innerHTML = '⚠️ Cloud: Perlu Aktifkan Firestore';
           topbarBadge.title = 'Buka Firebase Console -> Firestore Database -> Create database';
+        } else {
+          topbarBadge.innerHTML = '⚠️ Cloud: Cek Koneksi';
+          topbarBadge.title = errMsg || 'Klik untuk cek status di pengaturan';
         }
       }
     } else {
@@ -211,7 +217,11 @@ class CloudSyncEngine {
         }
 
         if (window.app) {
-          window.app.renderAll();
+          if (typeof window.app.renderAllViews === 'function') {
+            window.app.renderAllViews();
+          } else if (typeof window.app.renderAll === 'function') {
+            window.app.renderAll();
+          }
           if (typeof window.app.showToast === 'function') {
             window.app.showToast('Data riwayat otomatis tersinkron dari Cloud!', 'info');
           }
@@ -246,7 +256,13 @@ class CloudSyncEngine {
           window.db.data = merged;
           window.db.saveLocalOnly();
         }
-        if (window.app) window.app.renderAll();
+        if (window.app) {
+          if (typeof window.app.renderAllViews === 'function') {
+            window.app.renderAllViews();
+          } else if (typeof window.app.renderAll === 'function') {
+            window.app.renderAll();
+          }
+        }
 
         // Jika data gabungan lebih baru/banyak dari remote, perbarui cloud
         const remoteInvoicesCount = (remoteData.invoices || []).length;
